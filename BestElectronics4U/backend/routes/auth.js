@@ -117,8 +117,10 @@ router.post('/login', async (req, res) => {
     const user = users[0];
     if (!user) return res.status(404).json({ error: 'User not found.' });
 
-    const match = await bcrypt.compare(password, user.user_password);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials.' });
+    // 🔓 Plain-text comparison for dummy/demo users
+    if (password !== user.user_password) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
 
     const token = jwt.sign(
       { user_id: user.user_id, is_vendor: !!user.is_vendor },
@@ -132,12 +134,11 @@ router.post('/login', async (req, res) => {
       user_name: user.user_name,
       email: user.email,
       is_vendor: !!user.is_vendor,
-      paid_user: !!user.paid_user, // ✅ Add this line
+      paid_user: !!user.paid_user,
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       address: user.address || ''
     };
-    
 
     res.json({ token, user: userPayload });
   } catch (err) {
@@ -145,6 +146,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Login failed.' });
   }
 });
+
 
   
 module.exports = router; 

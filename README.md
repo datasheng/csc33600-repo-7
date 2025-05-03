@@ -8,3 +8,6 @@ A website where users can find the best deals on a wide range of electronics and
 ![image](https://github.com/user-attachments/assets/ac7ec5ae-3bea-4134-a8fd-69d771dc06b3)
 
 
+![image](https://github.com/user-attachments/assets/6224ffd1-e2ca-4229-9e10-232a5c5b15d2)
+
+

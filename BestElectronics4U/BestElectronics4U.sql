@@ -11,7 +11,8 @@ CREATE TABLE user (
   address TEXT,
   email VARCHAR(100) UNIQUE NOT NULL,
   user_password VARCHAR(255) NOT NULL,
-  is_vendor BOOLEAN DEFAULT FALSE
+  is_vendor BOOLEAN DEFAULT FALSE,
+  paid_user BOOLEAN DEFAULT FALSE -- ✅ New column
 );
 
 

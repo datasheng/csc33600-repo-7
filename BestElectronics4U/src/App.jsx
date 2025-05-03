@@ -10,6 +10,7 @@ import Pricing from './pages/Pricing';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
+import Success from './pages/Success';
 
 const Home = () => (
   <>
@@ -41,7 +42,7 @@ function App() {
         />
 
         <main className="flex-grow">
-          <Routes>
+        <Routes>
             <Route path="/" element={<Home />} />
 
             {/* ✅ Pass savedItems state to Shop */}
@@ -61,6 +62,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/success" element={<Success />} /> {/* ✅ Add this */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

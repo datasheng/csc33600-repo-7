@@ -24,12 +24,10 @@ const Header = ({ user, setUser, setShowResults }) => {
       setShowResults?.(false);
     }
     window.scrollTo(0, 0);
-    setMobileMenuOpen(false);
   };
 
   const handleLinkClick = () => {
     window.scrollTo(0, 0);
-    setMobileMenuOpen(false);
   };
 
   const fetchSavedItems = async () => {
@@ -76,48 +74,70 @@ const Header = ({ user, setUser, setShowResults }) => {
 
       <nav>
         <ul className="flex items-center gap-4 text-white font-medium text-[1.1rem] relative">
-        {[
-          { label: 'Home', to: '/' },
-          { label: 'Shop', to: '/shop' },
-          { label: 'Pricing', to: '/pricing' },
-          { label: 'About', to: '/about' },
-          { label: 'Contact', to: '/contact' },
-          { label: 'Submit', to: '/submit' },
-          ...(user ? [{ label: 'Dashboard', to: '/dashboard' }] : []), // ✅ Conditionally show Dashboard
-        ].map(({ label, to }) => (
-          <li key={to}>
+          <li>
             <Link
-              to={to}
-              onClick={() => window.scrollTo(0, 0)}
+              to="/"
+              onClick={handleHomeClick}
               className={`px-4 py-2 rounded-md transition duration-200 ${
-                location.pathname === to
+                location.pathname === '/'
                   ? 'bg-white text-blue-700 font-semibold shadow-md'
                   : 'hover:bg-white/20 hover:text-white'
               }`}
             >
-              {label}
+              Home
             </Link>
           </li>
-        ))}
+          <li>
+            <button
+              onClick={() => {
+                if (!user) {
+                  alert("You must be logged in to view the shop.");
+                } else if (!user.paid_user && !user.is_vendor) {
+                  alert("You must be a paid user or vendor to view this page.");
+                } else {
+                  navigate('/shop');
+                  window.scrollTo(0, 0);
+                }
+              }}
+              className={`px-4 py-2 rounded-md transition duration-200 ${
+                location.pathname === '/shop'
+                  ? 'bg-white text-blue-700 font-semibold shadow-md'
+                  : 'hover:bg-white/20 hover:text-white'
+              }`}
+            >
+              Shop
+            </button>
+          </li>
+          {[{ label: 'Pricing', to: '/pricing' }, { label: 'About', to: '/about' }, { label: 'Contact', to: '/contact' },  ...(user ? [{ label: 'Dashboard', to: '/dashboard' }] : [])].map(({ label, to }) => (
+            <li key={to}>
+              <Link
+                to={to}
+                onClick={handleLinkClick}
+                className={`px-4 py-2 rounded-md transition duration-200 ${
+                  location.pathname === to
+                    ? 'bg-white text-blue-700 font-semibold shadow-md'
+                    : 'hover:bg-white/20 hover:text-white'
+                }`}
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
 
-
-          {/* 🛒 Cart Icon */}
           {user && (
             <li className="relative" ref={cartRef}>
-             <button
-              onClick={() => setCartOpen(prev => !prev)}
-              className="relative text-white text-xl px-3 hover:text-yellow-300 transition"
-              title="Saved Items"
-            >
-              🛒
-              {savedItems.length > 0 && (
-                <span className="absolute -top-2 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {savedItems.length}
-                </span>
-              )}
-            </button>
-
-
+              <button
+                onClick={() => setCartOpen(prev => !prev)}
+                className="relative text-white text-xl px-3 hover:text-yellow-300 transition"
+                title="Saved Items"
+              >
+                🛒
+                {savedItems.length > 0 && (
+                  <span className="absolute -top-2 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {savedItems.length}
+                  </span>
+                )}
+              </button>
               {cartOpen && (
                 <div className="absolute right-0 mt-2 w-96 max-h-96 overflow-y-auto bg-white text-black rounded-lg shadow-xl z-50 p-4 border border-gray-300">
                   <h3 className="text-lg font-semibold mb-2 border-b pb-2">Saved Items</h3>
@@ -158,7 +178,6 @@ const Header = ({ user, setUser, setShowResults }) => {
             </li>
           )}
 
-          {/* Welcome & Logout */}
           {user ? (
             <>
               <li className="text-white font-medium hidden md:block">

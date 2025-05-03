@@ -132,10 +132,12 @@ router.post('/login', async (req, res) => {
       user_name: user.user_name,
       email: user.email,
       is_vendor: !!user.is_vendor,
+      paid_user: !!user.paid_user, // ✅ Add this line
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       address: user.address || ''
     };
+    
 
     res.json({ token, user: userPayload });
   } catch (err) {
@@ -145,4 +147,4 @@ router.post('/login', async (req, res) => {
 });
 
   
-module.exports = router; // ✅ This is critical
+module.exports = router; 

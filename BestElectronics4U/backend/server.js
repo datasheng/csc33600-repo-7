@@ -6,12 +6,15 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors());
+const stripeRoutes = require('./routes/create-checkout-session');
 
 app.use(express.json()); 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/saved-items', require('./routes/savedItems'));
 app.use('/api/vendor', require('./routes/vendor'));
 app.use('/api/categories', require('./routes/category'));
+app.use('/api/stripe', stripeRoutes);
+
 
 
 //connect to DB via. enviroment variables.

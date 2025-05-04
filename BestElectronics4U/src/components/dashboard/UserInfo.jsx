@@ -6,7 +6,7 @@ const UserInfo = ({ user }) => {
 
   useEffect(() => {
     if (user.is_vendor) {
-      axios.get(`http://localhost:5000/api/vendor/shop/${user.user_id}`)
+      axios.get(`${import.meta.env.VITE_API_URL}/api/vendor/shop/${user.user_id}`)
         .then(res => setShop(res.data))
         .catch(err => console.error('❌ Error fetching shop info:', err));
     }
@@ -18,7 +18,7 @@ const UserInfo = ({ user }) => {
   };
 
   const handleSave = () => {
-    axios.post(`http://localhost:5000/api/vendor/shop/${user.user_id}`, shop)
+    axios.post(`${import.meta.env.VITE_API_URL}/api/vendor/shop/${user.user_id}`, shop)
       .then(() => alert('✅ Shop info updated!'))
       .catch(() => alert('❌ Failed to update shop info'));
   };

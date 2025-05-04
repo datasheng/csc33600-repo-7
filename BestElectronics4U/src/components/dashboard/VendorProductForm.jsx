@@ -18,7 +18,7 @@ const VendorProductForm = ({ userId }) => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/categories/flat') // 👈 Use the correct backend route
+    axios.get(`${import.meta.env.VITE_API_URL}/api/categories/flat`)
       .then(res => setCategories(res.data))
       .catch(err => console.error('❌ Failed to fetch categories:', err));
   }, []);
@@ -30,7 +30,7 @@ const VendorProductForm = ({ userId }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://localhost:5000/api/vendor/product', {
+    axios.post(`${import.meta.env.VITE_API_URL}/api/vendor/product`, {
       ...form,
       shop_id: userId
     })

@@ -7,7 +7,7 @@ const VendorProducts = ({ userId }) => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/vendor/products/${userId}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/vendor/products/${userId}`);
       setProducts(res.data);
     } catch (err) {
       console.error('❌ Failed to fetch vendor products:', err.message);
@@ -29,7 +29,7 @@ const VendorProducts = ({ userId }) => {
 
   const handleUpdate = async (product) => {
     try {
-      await axios.put(`http://localhost:5000/api/vendor/products/${product.product_id}`, product);
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/vendor/products/${product.product_id}`, product);
       alert('✅ Product updated!');
       setEditing(null);
     } catch {
@@ -40,7 +40,7 @@ const VendorProducts = ({ userId }) => {
   const handleDelete = async (productId) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/vendor/products/${productId}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/vendor/products/${productId}`);
       setProducts(prev => prev.filter(p => p.product_id !== productId));
       alert('🗑️ Product deleted');
     } catch {

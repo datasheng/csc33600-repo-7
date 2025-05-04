@@ -8,7 +8,7 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
   const fetchItems = async (reset = false) => {
     try {
-      const res = await axios.get('http://localhost:5000/products', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`, {
         params: { offset: reset ? 0 : offset, query: searchQuery }
       });
 
@@ -28,13 +28,13 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/saved-items', {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
         user_id: user.user_id,
         product_id
       });
 
       // Re-fetch saved items and update shared state
-      const res = await axios.get(`http://localhost:5000/api/saved-items/${user.user_id}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/saved-items/${user.user_id}`);
       setSavedItems(res.data || []);
 
       alert('✅ Item saved to cart!');

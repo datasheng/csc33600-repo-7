@@ -1,7 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const OpenAI = require('openai');
+const axios = require('axios');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+
+// Rate limiting configuration
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 // CORS configuration for the chatbot route
 const corsOptions = {
@@ -15,37 +25,16 @@ router.options('/chat', cors(corsOptions), (req, res) => {
   res.status(204).end();
 });
 
-// Initialize OpenAI with error handling
-let openai;
-try {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OpenAI API key not found in environment variables');
-  }
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
-  console.log('OpenAI API initialized successfully with key:', process.env.OPENAI_API_KEY.substring(0, 10) + '...');
-} catch (error) {
-  console.error('Failed to initialize OpenAI:', error.message);
-}
-
 // Handle POST requests for chat
-router.post('/chat', cors(corsOptions), async (req, res) => {
+router.post('/chat', cors(corsOptions), chatLimiter, async (req, res) => {
   console.log('==== CHATBOT REQUEST RECEIVED ====');
   const { message, context, isVendor } = req.body;
   console.log('Request body:', JSON.stringify({ message, context, isVendor }));
   console.log('Headers:', JSON.stringify(req.headers));
 
-  // If OpenAI is not initialized, use fallback immediately
-  if (!openai) {
-    console.log('Using fallback responses - OpenAI not initialized');
-    const response = getPredefinedResponse(message, context, isVendor);
-    return res.json({ response });
-  }
-
   try {
     // Create a detailed system prompt based on our application context
-    const systemPrompt = `You are Electro, a helpful shopping assistant for BestElectronics4U, an electronics e-commerce platform. 
+    const systemPrompt = `You are Electro, a friendly and helpful shopping assistant for BestElectronics4U, an electronics e-commerce platform. 
     ${isVendor ? "You're talking to a vendor who manages their shop on the platform." : "You're talking to a customer shopping for electronics."}
     Current context: ${context}
     
@@ -56,30 +45,40 @@ router.post('/chat', cors(corsOptions), async (req, res) => {
     - Premium subscription features are available
     - Secure payment processing with Stripe
     
-    Please provide helpful, concise responses that are specific to our platform.`;
+    Please provide natural, conversational responses that are specific to our platform. Avoid using markdown formatting, bullet points, or special characters. Keep your responses friendly and helpful.`;
 
-    console.log('Sending request to OpenAI API with prompt:', systemPrompt);
-    const completion = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user",
-          content: message
+    console.log('Sending request to Gemini API with prompt:', systemPrompt);
+    
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [{
+          parts: [
+            { text: systemPrompt },
+            { text: message }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
         }
-      ],
-      model: "gpt-3.5-turbo",
-      temperature: 0.7,
-      max_tokens: 150
-    });
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    const response = completion.choices[0].message.content;
-    console.log('Received response from OpenAI:', response);
-    res.json({ response });
+    const result = response.data.candidates[0].content.parts[0].text;
+    // Clean up the response to remove any remaining formatting
+    const cleanResult = result.replace(/[*#-]/g, '').replace(/\n/g, ' ').trim();
+    console.log('Received response from Gemini:', cleanResult);
+    res.json({ response: cleanResult });
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('Gemini API error:', error.response?.data || error.message);
     // Fallback to predefined responses if API call fails
     const response = getPredefinedResponse(message, context, isVendor);
     res.json({ response });

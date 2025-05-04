@@ -11,6 +11,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import Success from './pages/Success';
+import Chatbot from './components/Chatbot/Chatbot';
 
 const Home = () => (
   <>
@@ -68,6 +69,7 @@ function App() {
         </main>
 
         <Footer />
+        <Chatbot />
       </div>
     </Router>
   );

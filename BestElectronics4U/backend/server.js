@@ -7,14 +7,14 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 const stripeRoutes = require('./routes/create-checkout-session');
-
+const chatbotRoutes = require('./routes/chatbot');
 app.use(express.json()); 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/saved-items', require('./routes/savedItems'));
 app.use('/api/vendor', require('./routes/vendor'));
 app.use('/api/categories', require('./routes/category'));
 app.use('/api/stripe', stripeRoutes);
-
+app.use('/api/chatbot', chatbotRoutes);
 
 
 //connect to DB via. enviroment variables.
@@ -60,7 +60,7 @@ app.get('/products', (req, res) => {
   
   
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

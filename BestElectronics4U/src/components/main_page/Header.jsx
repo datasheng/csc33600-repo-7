@@ -33,7 +33,7 @@ const Header = ({ user, setUser, setShowResults }) => {
   const fetchSavedItems = async () => {
     if (user?.user_id) {
       try {
-        const res = await axios.get(`http://localhost:5000/api/saved-items/${user.user_id}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/saved-items/${user.user_id}`);
         setSavedItems(res.data || []);
       } catch (err) {
         console.error('❌ Failed to fetch saved items:', err.message);
@@ -57,7 +57,7 @@ const Header = ({ user, setUser, setShowResults }) => {
 
   const handleRemove = async (product_id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/saved-items`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
         data: { user_id: user.user_id, product_id }
       });
       setSavedItems(prev => prev.filter(item => item.product_id !== product_id));

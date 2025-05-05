@@ -11,30 +11,33 @@ const Chatbot = () => {
   const chatWindowRef = useRef(null);
   const location = useLocation();
 
+  // ✅ Load user and stop animation
   useEffect(() => {
-    // Get user from localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
 
-    // Set initial message based on user type
-    const initialMessage = {
-      id: 1,
-      text: user 
-        ? `Hello ${user.first_name || 'there'}! I'm Electro, your personalized shopping assistant. How can I help you ${user.is_vendor ? 'with your shop' : 'with your shopping'} today?`
-        : "Hello! I'm Electro, your personalized shopping assistant. How can I help you with your shopping today?",
-      sender: 'bot',
-      timestamp: new Date().toISOString()
-    };
-    setMessages([initialMessage]);
-
-    // Stop animation after 5 seconds
     const timer = setTimeout(() => {
       setIsAnimating(false);
     }, 5000);
 
     return () => clearTimeout(timer);
+  }, []);
+
+  // ✅ Add initial message once user is set
+  useEffect(() => {
+    if (user !== null || localStorage.getItem("user")) {
+      const initialMessage = {
+        id: 1,
+        text: user 
+          ? `Hello ${user.first_name || 'there'}! I'm Electro, your personalized shopping assistant. How can I help you ${user.is_vendor ? 'with your shop' : 'with your shopping'} today?`
+          : "Hello! I'm Electro, your personalized shopping assistant. How can I help you with your shopping today?",
+        sender: 'bot',
+        timestamp: new Date().toISOString()
+      };
+      setMessages([initialMessage]);
+    }
   }, [user]);
 
   const toggleChat = () => {
@@ -43,7 +46,6 @@ const Chatbot = () => {
   };
 
   const handleSendMessage = async (message) => {
-    // Add user message
     const userMessage = {
       id: messages.length + 1,
       text: message,
@@ -52,7 +54,7 @@ const Chatbot = () => {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Get context based on current page
+    // Get context from route
     let context = '';
     if (location.pathname.includes('/product/')) {
       context = 'product details';
@@ -63,17 +65,12 @@ const Chatbot = () => {
     }
 
     try {
-      console.log('Sending request to:', `${import.meta.env.VITE_API_URL}/api/chatbot/chat`);
-      console.log('Request data:', { message, context, isVendor: user?.is_vendor || false });
-      
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/chatbot/chat`, {
         message,
         context,
         isVendor: user?.is_vendor || false
       });
 
-      console.log('Response received:', response.data);
-      
       const botResponse = {
         id: messages.length + 2,
         text: response.data.response,
@@ -83,8 +80,6 @@ const Chatbot = () => {
       setMessages(prev => [...prev, botResponse]);
     } catch (error) {
       console.error('Chatbot error:', error);
-      console.error('Error details:', error.message, error.response?.data, error.response?.status);
-      // Fallback to predefined response if API call fails
       const botResponse = {
         id: messages.length + 2,
         text: getPredefinedResponse(message, context, user?.is_vendor || false),
@@ -96,42 +91,27 @@ const Chatbot = () => {
   };
 
   const getPredefinedResponse = (message, context, isVendor) => {
-    const lowerMessage = message.toLowerCase();
-    
+    const lower = message.toLowerCase();
     if (isVendor) {
-      if (lowerMessage.includes('product') || lowerMessage.includes('add') || lowerMessage.includes('list')) {
-        return "To add a new product to your shop, go to your dashboard and click 'Add Product'. You'll need to provide product details, pricing, and images.";
-      } else if (lowerMessage.includes('order') || lowerMessage.includes('sales')) {
-        return "You can view your orders and sales in the 'Orders' section of your dashboard. This shows all customer purchases from your shop.";
-      } else if (lowerMessage.includes('analytics') || lowerMessage.includes('stats')) {
-        return "Visit the 'Analytics' section in your dashboard to see detailed statistics about your shop's performance, including sales trends and customer behavior.";
-      } else if (lowerMessage.includes('payment') || lowerMessage.includes('earn')) {
-        return "Your earnings are automatically processed and transferred to your registered payment method. You can view your payment history in the 'Payments' section.";
-      }
+      if (lower.includes('product')) return "To add a new product, go to your dashboard and click 'Add Product'.";
+      if (lower.includes('order')) return "View orders in the 'Orders' section of your dashboard.";
+      if (lower.includes('analytics')) return "Visit 'Analytics' for detailed stats on your shop.";
+      if (lower.includes('payment')) return "Your earnings are processed via your chosen payment method.";
     } else {
-      if (lowerMessage.includes('subscribe') || lowerMessage.includes('premium')) {
-        return "To subscribe to premium features, go to your account settings and click on 'Upgrade to Premium'. You'll get access to exclusive deals and features!";
-      } else if (lowerMessage.includes('vendor') || lowerMessage.includes('shop')) {
-        return "To become a vendor, register for an account and select 'I want to be a vendor' during signup. You'll need to provide some basic information about your shop.";
-      } else if (lowerMessage.includes('payment') || lowerMessage.includes('pay')) {
-        return "We accept all major credit cards, PayPal, and Stripe payments. All transactions are secure and encrypted.";
-      }
+      if (lower.includes('subscribe')) return "Go to account settings and click 'Upgrade to Premium'.";
+      if (lower.includes('vendor')) return "To become a vendor, register and choose 'I want to be a vendor'.";
+      if (lower.includes('payment')) return "We accept all major credit cards and PayPal via Stripe.";
     }
 
-    // Context-specific responses
-    if (context === 'product details') {
-      return isVendor
-        ? "I can help you with product management, pricing strategies, or inventory updates. What would you like to know?"
-        : "I can help you with product specifications, pricing, or availability. What would you like to know?";
-    } else if (context === 'shopping cart') {
-      return "I can help you with your cart items, checkout process, or payment options. What do you need assistance with?";
-    } else if (context === 'vendor dashboard') {
-      return "I can help you manage your shop, products, or view analytics. What would you like to know?";
-    } else {
-      return isVendor
-        ? "I'm here to help you manage your shop. You can ask me about products, orders, analytics, or payments."
-        : "I'm here to help with your shopping experience. You can ask me about products, subscriptions, becoming a vendor, or payment methods.";
-    }
+    if (context === 'product details') return isVendor
+      ? "I can help with pricing, inventory, or product details."
+      : "Need help with product specs or availability?";
+    if (context === 'shopping cart') return "I can help with your cart or checkout.";
+    if (context === 'vendor dashboard') return "I can help with shop management or analytics.";
+
+    return isVendor
+      ? "Ask me anything about managing your shop, products, or payments!"
+      : "Ask me about shopping, payments, or how to become a vendor!";
   };
 
   return (
@@ -139,23 +119,10 @@ const Chatbot = () => {
       {!isOpen ? (
         <button
           onClick={toggleChat}
-          className={`bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors relative ${
-            isAnimating ? 'animate-bounce' : ''
-          }`}
+          className={`bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors relative ${isAnimating ? 'animate-bounce' : ''}`}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
           {isAnimating && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
@@ -177,4 +144,4 @@ const Chatbot = () => {
   );
 };
 
-export default Chatbot; 
+export default Chatbot;

@@ -4,13 +4,18 @@ import logo from "../../assets/logo.svg";
 import ProfileIcon from "./ProfileIcon";
 import axios from "axios";
 
-const Header = ({ user, setUser, setShowResults }) => {
+const Header = ({
+  user,
+  setUser,
+  savedItems,
+  setSavedItems,
+  setShowResults,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const cartRef = useRef();
 
   const [cartOpen, setCartOpen] = useState(false);
-  const [savedItems, setSavedItems] = useState([]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -31,7 +36,7 @@ const Header = ({ user, setUser, setShowResults }) => {
   };
 
   const fetchSavedItems = async () => {
-    if (user?.user_id) {
+    if (user?.user_id && savedItems.length === 0) {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/api/saved-items/${user.user_id}`
@@ -45,7 +50,7 @@ const Header = ({ user, setUser, setShowResults }) => {
 
   useEffect(() => {
     fetchSavedItems();
-  }, [user]);
+  }, [user, savedItems.length, setSavedItems]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -141,10 +146,10 @@ const Header = ({ user, setUser, setShowResults }) => {
             <li className="relative" ref={cartRef}>
               <button
                 onClick={() => setCartOpen((prev) => !prev)}
-                className="relative text-white text-xl px-3 hover:text-yellow-300 transition"
-                title="Saved Items"
+                className="relative text-white text-xl px-3 hover:text-pink-300 transition"
+                title="Liked Items"
               >
-                🛒
+                ❤️
                 {savedItems.length > 0 && (
                   <span className="absolute -top-2 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {savedItems.length}
@@ -154,10 +159,10 @@ const Header = ({ user, setUser, setShowResults }) => {
               {cartOpen && (
                 <div className="absolute right-0 mt-2 w-96 max-h-96 overflow-y-auto bg-white text-black rounded-lg shadow-xl z-50 p-4 border border-gray-300">
                   <h3 className="text-lg font-semibold mb-2 border-b pb-2">
-                    Saved Items
+                    Liked Items
                   </h3>
                   {savedItems.length === 0 ? (
-                    <p className="text-sm text-gray-500">No saved items.</p>
+                    <p className="text-sm text-gray-500">No liked items yet.</p>
                   ) : (
                     savedItems.map((item) => (
                       <div

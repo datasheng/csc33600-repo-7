@@ -6,6 +6,15 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [likedItemIds, setLikedItemIds] = useState(new Set());
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
+
+  // Toggle description expansion
+  const toggleDescription = (productId) => {
+    setExpandedDescriptions((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
+  };
 
   const fetchItems = async (reset = false) => {
     try {
@@ -130,7 +139,7 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
   return (
     <div className="max-w-6xl mx-auto p-4">
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item, index) => {
           // Check if this specific product is liked
           const liked = isItemLiked(item.product_id);
@@ -138,70 +147,80 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
           return (
             <div
               key={index}
-              className="bg-white/10 border border-white/20 p-4 rounded-xl shadow-lg backdrop-blur-md flex flex-col md:flex-row gap-4"
+              className="bg-white/10 border border-white/20 p-4 rounded-xl shadow-lg backdrop-blur-md flex flex-col h-full"
             >
               {/* Image */}
-              <div className="md:w-1/3 w-full flex justify-center items-center">
+              <div className="w-full h-48 flex justify-center items-center mb-4">
                 <img
                   src={item.image_url}
                   alt={item.product_name}
-                  className="max-h-48 object-contain w-full rounded-lg"
+                  className="max-h-full object-contain w-full rounded-lg"
                 />
               </div>
 
               {/* Details */}
-              <div className="md:w-2/3 w-full flex flex-col justify-between">
-                <h3 className="text-lg md:text-xl font-semibold text-white mb-1 line-clamp-2">
+              <div className="flex flex-col flex-grow">
+                <h3 className="text-lg font-semibold text-white mb-2 break-words line-clamp-2 hover:line-clamp-none">
                   {item.product_name}
                 </h3>
 
-                <p className="text-sm text-white/80 mb-1">
-                  <strong>Rating:</strong> ⭐ {item.rating} ({item.rating_count}{" "}
-                  reviews)
-                </p>
+                <div className="text-sm text-white/80">
+                  <p className="mb-1">
+                    <strong>Rating:</strong> ⭐ {item.rating} (
+                    {item.rating_count} reviews)
+                  </p>
 
-                <p className="text-sm text-white/80 mb-1">
-                  <strong>Shop:</strong> {item.shop_name || "Unknown"}
-                </p>
+                  <p className="mb-1">
+                    <strong>Shop:</strong> {item.shop_name || "Unknown"}
+                  </p>
+                </div>
 
-                <p className="text-sm text-white/80 break-words mb-2">
-                  <strong>External Site:</strong>{" "}
-                  <a
-                    href={item.external_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-300 underline break-all hover:text-cyan-100"
+                <div className="text-sm text-white/80 mb-2">
+                  <p
+                    className={
+                      expandedDescriptions[item.product_id]
+                        ? ""
+                        : "line-clamp-2"
+                    }
                   >
-                    {item.external_url}
-                  </a>
-                </p>
+                    {item.about_product}
+                  </p>
+                  {item.about_product && item.about_product.length > 120 && (
+                    <button
+                      onClick={() => toggleDescription(item.product_id)}
+                      className="text-cyan-300 hover:text-cyan-100 text-xs mt-1 transition-colors"
+                    >
+                      {expandedDescriptions[item.product_id]
+                        ? "Show Less"
+                        : "Read More"}
+                    </button>
+                  )}
+                </div>
 
-                <p className="text-sm text-white/80 mb-2 line-clamp-3">
-                  {item.about_product}
-                </p>
+                <div className="mt-auto">
+                  <p className="text-lime-300 text-xl font-bold mt-3">
+                    ${item.discounted_price.toFixed(2)}
+                    <span className="line-through text-red-400 text-sm ml-2">
+                      ${item.actual_price.toFixed(2)}
+                    </span>
+                  </p>
 
-                <p className="text-lime-300 text-xl font-bold mt-1">
-                  ${item.discounted_price.toFixed(2)}
-                  <span className="line-through text-red-400 text-sm ml-2">
-                    ${item.actual_price.toFixed(2)}
-                  </span>
-                </p>
-
-                {/* Like button with heart icon */}
-                <button
-                  onClick={() => handleSaveItem(item.product_id)}
-                  className={`mt-4 w-full py-2 rounded-md transition font-semibold flex items-center justify-center gap-2 ${
-                    liked
-                      ? "bg-pink-500 text-white hover:bg-pink-600"
-                      : "bg-white text-indigo-700 hover:bg-indigo-100"
-                  }`}
-                  data-product-id={item.product_id}
-                >
-                  {liked ? "Liked " : "Like "}
-                  <span className="text-xl" role="img" aria-label="heart">
-                    {liked ? "❤️" : "🤍"}
-                  </span>
-                </button>
+                  {/* Like button with heart icon */}
+                  <button
+                    onClick={() => handleSaveItem(item.product_id)}
+                    className={`mt-3 w-full py-2 rounded-md transition font-semibold flex items-center justify-center gap-2 ${
+                      liked
+                        ? "bg-pink-500 text-white hover:bg-pink-600"
+                        : "bg-white text-indigo-700 hover:bg-indigo-100"
+                    }`}
+                    data-product-id={item.product_id}
+                  >
+                    {liked ? "Liked " : "Like "}
+                    <span className="text-xl" role="img" aria-label="heart">
+                      {liked ? "❤️" : "🤍"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           );

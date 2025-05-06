@@ -173,8 +173,22 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
                   <p className="mb-1">
                     <strong>Shop:</strong> {item.shop_name || "Unknown"}
                   </p>
+
+                  <p className="text-sm text-white/80 break-words mb-2">
+                <strong>External Site:</strong>{' '}
+                <a
+                  href={item.external_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-300 underline break-all hover:text-cyan-100"
+                >
+                  {item.external_url}
+                </a>
+              </p>
+
                 </div>
 
+        
                 <div className="text-sm text-white/80 mb-2">
                   <p
                     className={

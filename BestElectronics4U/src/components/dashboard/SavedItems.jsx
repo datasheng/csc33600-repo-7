@@ -56,7 +56,7 @@ const SavedItems = ({ userId, savedItems, setSavedItems }) => {
         <span className="bg-gradient-to-r from-pink-500 to-red-500 rounded-full w-8 h-8 flex items-center justify-center">
           ❤️
         </span>
-        <h2 className="text-2xl font-bold">Liked Items</h2>
+        <h2 className="text-2xl font-bold">Liked Products</h2>
       </div>
 
       {loading ? (
@@ -66,9 +66,9 @@ const SavedItems = ({ userId, savedItems, setSavedItems }) => {
       ) : items.length === 0 ? (
         <div className="bg-white/5 rounded-xl p-8 text-center border border-white/10">
           <div className="text-5xl mb-4">❤️</div>
-          <p className="text-white/70 text-lg">No items liked yet.</p>
+          <p className="text-white/70 text-lg">No products liked yet.</p>
           <p className="text-white/50 mt-2">
-            Items you like while shopping will appear here.
+            Products you like while shopping will appear here.
           </p>
         </div>
       ) : (
@@ -94,7 +94,7 @@ const SavedItems = ({ userId, savedItems, setSavedItems }) => {
               </div>
 
               <div className="p-4">
-                <h3 className="font-semibold text-lg mb-1 text-white truncate">
+                <h3 className="font-semibold text-lg mb-1 text-white break-words">
                   {item.product_name}
                 </h3>
                 <p className="text-sm text-cyan-300 mb-3">
@@ -111,11 +111,19 @@ const SavedItems = ({ userId, savedItems, setSavedItems }) => {
                     View Product
                   </a>
 
-                  {item.discounted_price && (
-                    <span className="text-green-400 font-medium">
-                      ${item.discounted_price}
-                    </span>
-                  )}
+                  <div className="text-right">
+                    {item.discounted_price && (
+                      <span className="text-green-400 font-medium">
+                        ${Number(item.discounted_price).toFixed(2)}
+                      </span>
+                    )}
+                    {item.actual_price &&
+                      item.actual_price !== item.discounted_price && (
+                        <div className="line-through text-red-400 text-xs">
+                          ${Number(item.actual_price).toFixed(2)}
+                        </div>
+                      )}
+                  </div>
                 </div>
               </div>
             </div>

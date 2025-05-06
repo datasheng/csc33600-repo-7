@@ -164,7 +164,7 @@ const Header = ({
             <button
               onClick={() => setCartOpen((prev) => !prev)}
               className="relative text-white text-xl px-3 hover:text-pink-300 transition"
-              title="Liked Items"
+              title="Liked Products"
             >
               ❤️
               {savedItems.length > 0 && (
@@ -174,47 +174,111 @@ const Header = ({
               )}
             </button>
             {cartOpen && (
-              <div className="absolute right-0 mt-2 w-96 max-h-96 overflow-y-auto bg-white text-black rounded-lg shadow-xl z-50 p-4 border border-gray-300">
-                <h3 className="text-lg font-semibold mb-2 border-b pb-2">
-                  Liked Items
-                </h3>
-                {savedItems.length === 0 ? (
-                  <p className="text-sm text-gray-500">No liked items yet.</p>
-                ) : (
-                  savedItems.map((item) => (
-                    <div
-                      key={item.product_id}
-                      className="flex gap-3 mb-4 border-b pb-2"
-                    >
-                      <img
-                        src={item.image_url}
-                        alt={item.product_name}
-                        className="w-16 h-16 object-contain rounded border"
-                      />
-                      <div className="flex flex-col text-sm flex-1">
-                        <span className="font-medium">{item.product_name}</span>
-                        <span className="text-gray-600 text-xs">
-                          Shop: {item.shop_name}
-                        </span>
-                        <a
-                          href={item.external_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline text-xs mt-1"
-                        >
-                          View Product
-                        </a>
-                      </div>
-                      <button
-                        onClick={() => handleRemove(item.product_id)}
-                        className="text-red-500 hover:text-red-700 text-sm ml-1"
-                        title="Remove"
-                      >
-                        ❌
-                      </button>
+              <div className="absolute right-0 mt-2 w-96 max-h-[70vh] overflow-y-auto bg-gradient-to-br from-indigo-900/95 via-blue-900/95 to-cyan-900/95 text-white rounded-xl shadow-xl z-50 backdrop-blur-md border border-white/20">
+                {/* Header */}
+                <div className="sticky top-0 bg-gradient-to-r from-indigo-800 via-cyan-700 to-blue-700 px-4 py-3 rounded-t-xl flex items-center gap-2 border-b border-white/10">
+                  <span className="bg-gradient-to-r from-pink-500 to-red-500 rounded-full w-8 h-8 flex items-center justify-center">
+                    ❤️
+                  </span>
+                  <h3 className="text-lg font-semibold text-white">
+                    Liked Products
+                  </h3>
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  {savedItems.length === 0 ? (
+                    <div className="bg-white/5 rounded-xl p-6 text-center border border-white/10">
+                      <div className="text-4xl mb-3">❤️</div>
+                      <p className="text-white/70">No products liked yet.</p>
+                      <p className="text-white/50 mt-2 text-sm">
+                        Products you like will appear here.
+                      </p>
                     </div>
-                  ))
-                )}
+                  ) : (
+                    <div className="space-y-3">
+                      {savedItems.map((item) => (
+                        <div
+                          key={item.product_id}
+                          className="bg-white/10 rounded-lg overflow-hidden border border-white/10 hover:border-cyan-400 transition-all duration-300 group flex gap-3"
+                        >
+                          {/* Image container */}
+                          <div className="relative w-24 h-24 bg-gradient-to-br from-indigo-900/50 to-cyan-900/50 flex-shrink-0">
+                            <img
+                              src={item.image_url}
+                              alt={item.product_name}
+                              className="w-full h-full object-contain p-2"
+                            />
+                          </div>
+
+                          {/* Details */}
+                          <div className="flex flex-col py-2 pr-2 flex-1">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-medium text-white text-sm break-words pr-2">
+                                {item.product_name}
+                              </h4>
+                              <button
+                                onClick={() => handleRemove(item.product_id)}
+                                className="text-pink-500 hover:text-pink-300 transition-colors mt-0.5 ml-1 opacity-50 hover:opacity-100 flex-shrink-0"
+                                title="Remove"
+                              >
+                                ×
+                              </button>
+                            </div>
+
+                            <span className="text-cyan-300 text-xs mt-1">
+                              Shop: {item.shop_name}
+                            </span>
+
+                            {/* Price */}
+                            {item.discounted_price && (
+                              <div className="mt-1">
+                                <span className="text-green-400 font-medium text-sm">
+                                  ${Number(item.discounted_price).toFixed(2)}
+                                  {item.actual_price &&
+                                    item.actual_price !==
+                                      item.discounted_price && (
+                                      <span className="line-through text-red-400 text-xs ml-1.5">
+                                        ${Number(item.actual_price).toFixed(2)}
+                                      </span>
+                                    )}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* View button */}
+                            <div className="mt-auto pt-1">
+                              <a
+                                href={item.external_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block text-xs px-2 py-1 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white rounded transition-all"
+                              >
+                                View Product
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Footer - Only show if there are items */}
+                  {savedItems.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-white/10 flex justify-center">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => {
+                          setCartOpen(false);
+                          handleLinkClick();
+                        }}
+                        className="text-sm px-3 py-1.5 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white rounded transition-colors"
+                      >
+                        View All Liked Products
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -31,7 +31,7 @@ const Dashboard = ({ user: propUser, savedItems, setSavedItems }) => {
     { id: "profile", label: "👤 Profile", component: <UserInfo user={user} /> },
     {
       id: "saved",
-      label: "❤️ Liked Items",
+      label: "❤️ Liked Products",
       component: (
         <SavedItems
           userId={user.user_id}

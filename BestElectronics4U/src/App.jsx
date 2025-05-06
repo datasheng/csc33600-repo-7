@@ -86,7 +86,16 @@ function App() {
             <Route path="/auth" element={<Auth setUser={setUser} />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard"
+              element={
+                <Dashboard
+                  user={user}
+                  savedItems={savedItems}
+                  setSavedItems={setSavedItems}
+                />
+              }
+            />
             <Route path="/success" element={<Success />} /> {/* ✅ Add this */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

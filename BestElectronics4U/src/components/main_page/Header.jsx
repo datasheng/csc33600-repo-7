@@ -29,7 +29,7 @@ const Header = ({
   };
 
   const fetchSavedItems = async () => {
-    if (user?.user_id && savedItems.length === 0) {
+    if (user?.user_id) {
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_API_URL}/api/saved-items/${user.user_id}`
@@ -42,8 +42,10 @@ const Header = ({
   };
 
   useEffect(() => {
-    fetchSavedItems();
-  }, [user, savedItems.length, setSavedItems]);
+    if (user) {
+      fetchSavedItems();
+    }
+  }, [user]); // Only depend on user changes, not on savedItems.length
 
   useEffect(() => {
     const handleClickOutside = (e) => {

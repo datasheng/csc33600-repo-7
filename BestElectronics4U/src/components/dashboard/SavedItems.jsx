@@ -1,30 +1,50 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const SavedItems = ({ userId }) => {
-  const [items, setItems] = useState([]);
+const SavedItems = ({ userId, savedItems, setSavedItems }) => {
   const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
 
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/saved-items/${userId}`)
-      .then((res) => {
-        setItems(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("❌ Failed to fetch saved items:", err);
-        setLoading(false);
-      });
-  }, [userId]);
+    // Update local items whenever the savedItems prop changes
+    if (savedItems && Array.isArray(savedItems)) {
+      setItems(savedItems);
+      setLoading(false);
+    } else if (!savedItems && userId) {
+      // If no savedItems are provided but we have a userId, fetch them
+      setLoading(true);
+      axios
+        .get(`${import.meta.env.VITE_API_URL}/api/saved-items/${userId}`)
+        .then((res) => {
+          setItems(res.data);
+          // Also update global state if this was a direct fetch
+          if (setSavedItems) {
+            setSavedItems(res.data);
+          }
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("❌ Failed to fetch saved items:", err);
+          setLoading(false);
+        });
+    }
+  }, [userId, savedItems, setSavedItems]);
 
   const handleRemove = async (productId) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
         data: { user_id: userId, product_id: productId },
       });
+
+      // Update local component state
       setItems((prev) => prev.filter((item) => item.product_id !== productId));
+
+      // Also update global state for other components
+      if (setSavedItems) {
+        setSavedItems((prev) =>
+          prev.filter((item) => item.product_id !== productId)
+        );
+      }
     } catch (err) {
       console.error("❌ Failed to remove item:", err);
     }
@@ -33,10 +53,10 @@ const SavedItems = ({ userId }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-2">
-        <span className="bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full w-8 h-8 flex items-center justify-center">
-          🛒
+        <span className="bg-gradient-to-r from-pink-500 to-red-500 rounded-full w-8 h-8 flex items-center justify-center">
+          ❤️
         </span>
-        <h2 className="text-2xl font-bold">Saved Items</h2>
+        <h2 className="text-2xl font-bold">Liked Items</h2>
       </div>
 
       {loading ? (
@@ -45,10 +65,10 @@ const SavedItems = ({ userId }) => {
         </div>
       ) : items.length === 0 ? (
         <div className="bg-white/5 rounded-xl p-8 text-center border border-white/10">
-          <div className="text-5xl mb-4">📭</div>
-          <p className="text-white/70 text-lg">No items saved yet.</p>
+          <div className="text-5xl mb-4">❤️</div>
+          <p className="text-white/70 text-lg">No items liked yet.</p>
           <p className="text-white/50 mt-2">
-            Items you save while shopping will appear here.
+            Items you like while shopping will appear here.
           </p>
         </div>
       ) : (

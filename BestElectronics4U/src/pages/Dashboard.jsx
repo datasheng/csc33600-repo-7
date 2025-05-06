@@ -5,19 +5,24 @@ import SavedItems from "../components/dashboard/SavedItems";
 import VendorProductForm from "../components/dashboard/VendorProductForm";
 import VendorProducts from "../components/dashboard/VendorProducts";
 
-const Dashboard = () => {
+const Dashboard = ({ user: propUser, savedItems, setSavedItems }) => {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      setUser(JSON.parse(stored));
+    // Use provided user prop if available, otherwise check localStorage
+    if (propUser) {
+      setUser(propUser);
     } else {
-      navigate("/auth"); // redirect if not logged in
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setUser(JSON.parse(stored));
+      } else {
+        navigate("/auth"); // redirect if not logged in
+      }
     }
-  }, [navigate]);
+  }, [navigate, propUser]);
 
   if (!user) return null; // or loading spinner
 
@@ -26,8 +31,14 @@ const Dashboard = () => {
     { id: "profile", label: "👤 Profile", component: <UserInfo user={user} /> },
     {
       id: "saved",
-      label: "🛒 Saved Items",
-      component: <SavedItems userId={user.user_id} />,
+      label: "❤️ Liked Items",
+      component: (
+        <SavedItems
+          userId={user.user_id}
+          savedItems={savedItems}
+          setSavedItems={setSavedItems}
+        />
+      ),
     },
   ];
 

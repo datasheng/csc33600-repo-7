@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import axios from "axios";
 import Header from "./components/main_page/Header";
@@ -18,6 +19,17 @@ import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Success from "./pages/Success";
 import Chatbot from "./components/Chatbot/Chatbot";
+
+// ScrollToTop component that automatically scrolls to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 const Home = () => (
   <>
@@ -59,6 +71,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop /> {/* Add the ScrollToTop component here */}
       <div className="min-h-screen bg-neutral-900 text-white font-sans leading-relaxed flex flex-col">
         {/* ✅ Pass savedItems state to Header */}
         <Header

@@ -1,0 +1,76 @@
+services:
+  # Backend API service using Docker
+  - type: web
+    name: bestelectronics4u-api
+    env: docker
+    plan: starter
+    region: oregon
+    branch: main
+    rootDir: BestElectronics4U
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: bestelectronics4u-db
+          property: host
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        fromDatabase:
+          name: bestelectronics4u-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: bestelectronics4u-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: bestelectronics4u-db
+          property: database
+      - key: PORT
+        value: 5001
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        fromService:
+          name: bestelectronics4u-frontend
+          type: web
+          property: url
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    healthCheckPath: /products
+
+  # Frontend static site
+  - type: web
+    name: bestelectronics4u-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    branch: main
+    rootDir: BestElectronics4U
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: bestelectronics4u-api
+          type: web
+          property: url
+      - key: VITE_STRIPE_PUBLIC_KEY
+        sync: false
+
+# Database - using MySQL-compatible managed database
+databases:
+  - name: bestelectronics4u-db
+    plan: starter
+    databaseName: electronics4U
+    user: bestelectronics
+    postDeploy: |
+      mysql -h $DATABASE_HOST -u $DATABASE_USER -p$DATABASE_PASSWORD $DATABASE_NAME < BestElectronics4U.sql 

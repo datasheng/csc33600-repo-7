@@ -107,7 +107,7 @@ const Pricing = () => {
     {
       title: "Monthly",
       price: "2",
-      priceId: "price_1RKmZKQvPHTql1pnv0MpHQQE",
+      priceId: "",
       period: "month",
       features: [
         "Access to all product listings",
@@ -121,7 +121,7 @@ const Pricing = () => {
     {
       title: "Lifetime",
       price: "100",
-      priceId: "price_1RKmfIQvPHTql1pnJ8omUM6F",
+      priceId: "",
       period: null,
       features: [
         "Unlimited lifetime access",

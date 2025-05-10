@@ -1,0 +1,78 @@
+services:
+  # MySQL Database Service (Private Service)
+  # Note: Free tier without persistent disk (data will be lost on redeploy)
+  - type: pserv
+    name: bestelectronics4u-mysql
+    plan: free
+    env: docker
+    repo: https://github.com/render-examples/mysql.git
+    autoDeploy: false
+    envVars:
+      - fromGroup: mysql-env
+
+  # Backend API service using Docker
+  - type: web
+    name: bestelectronics4u-api
+    env: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: BestElectronics4U/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: DB_HOST
+        fromService:
+          name: bestelectronics4u-mysql
+          type: pserv
+          property: host
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        value: mysql
+      - key: DB_PASSWORD
+        sync: false # Security best practice: manual entry for sensitive credentials
+      - key: DB_NAME
+        value: electronics4U
+      - key: PORT
+        value: 5001
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://bestelectronics4u-frontend.onrender.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    healthCheckPath: /products
+
+  # Frontend static site
+  - type: web
+    name: bestelectronics4u-frontend
+    env: static
+    buildCommand: cd BestElectronics4U && npm install && npm run build
+    staticPublishPath: ./BestElectronics4U/dist
+    branch: main
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://bestelectronics4u-api.onrender.com
+      - key: VITE_STRIPE_PUBLIC_KEY
+        sync: false
+
+envVarGroups:
+  - name: mysql-env
+    envVars:
+      - key: MYSQL_DATABASE
+        value: electronics4U
+      - key: MYSQL_USER
+        value: mysql
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true 

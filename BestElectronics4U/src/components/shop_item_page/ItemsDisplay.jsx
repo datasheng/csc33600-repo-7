@@ -7,6 +7,9 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
   const [hasMore, setHasMore] = useState(true);
   const [likedItemIds, setLikedItemIds] = useState(new Set());
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const limit = 30; // items per page
 
   // Toggle description expansion
   const toggleDescription = (productId) => {
@@ -18,23 +21,27 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
   const fetchItems = async (reset = false) => {
     try {
+      setLoading(true);
+      const currentOffset = reset ? 0 : offset;
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`, {
-        params: { offset: reset ? 0 : offset, query: searchQuery },
+        params: { offset: currentOffset, limit, query: searchQuery },
       });
 
-      if (res.data.length < 30) setHasMore(false);
+      if (res.data.length < limit) setHasMore(false);
       else setHasMore(true);
 
-      setItems((prev) => (reset ? res.data : [...prev, ...res.data]));
+      setItems(res.data);
     } catch (error) {
       console.error("❌ Error fetching products:", error);
+      alert("❌ Failed to fetch products. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Update the useEffect that sets up likedItemIds to be more resilient
+  // Update likedItemIds when savedItems changes
   useEffect(() => {
     if (savedItems && Array.isArray(savedItems)) {
-      // Extract product_id values and ensure they're strings for consistent comparison
       const productIds = savedItems.map((item) => String(item.product_id));
       setLikedItemIds(new Set(productIds));
       console.log("Updated liked items on render/refresh:", productIds);
@@ -54,17 +61,14 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
       const isAlreadyLiked = likedItemIds.has(productIdStr);
 
       if (isAlreadyLiked) {
-        // If already liked, unlike it
         await axios.delete(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
           data: { user_id: user.user_id, product_id },
         });
 
-        // Update local state by removing this product ID
         setSavedItems((prev) =>
           prev.filter((item) => String(item.product_id) !== productIdStr)
         );
 
-        // Also update the likedItemIds set immediately for instant UI feedback
         const newLikedIds = new Set(likedItemIds);
         newLikedIds.delete(productIdStr);
         setLikedItemIds(newLikedIds);
@@ -72,25 +76,21 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
         console.log("Item unliked:", productIdStr);
         alert("Item unliked");
       } else {
-        // If not liked, like it
         await axios.post(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
           user_id: user.user_id,
           product_id,
         });
 
-        // Update local state immediately for instant UI feedback
         const newLikedIds = new Set(likedItemIds);
         newLikedIds.add(productIdStr);
         setLikedItemIds(newLikedIds);
 
-        // Get the current item's details to add to savedItems
         const itemToAdd = items.find(
           (item) => String(item.product_id) === productIdStr
         );
         if (itemToAdd) {
           setSavedItems((prev) => [...prev, itemToAdd]);
         } else {
-          // Fallback to fetching complete list if we can't find the item
           const res = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/saved-items/${user.user_id}`
           );
@@ -106,44 +106,34 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
     }
   };
 
-  // Helper function to check if a specific product is liked
-  const isItemLiked = (productId) => {
-    return likedItemIds.has(String(productId));
-  };
+  const isItemLiked = (productId) => likedItemIds.has(String(productId));
 
+  // Fetch items when offset changes
   useEffect(() => {
-    if (offset > 0 && hasMore) {
-      fetchItems();
-    }
+    fetchItems();
+    window.scrollTo({ top: 0, behavior: "smooth" }); //scroll to top on page change
   }, [offset]);
 
+  // Reset offset & fetch on new search query
   useEffect(() => {
     setOffset(0);
     fetchItems(true);
   }, [searchQuery]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 50 &&
-        hasMore
-      ) {
-        setOffset((prev) => prev + 30);
-      }
-    };
+  const handlePrevPage = () => {
+    if (offset >= limit) setOffset((prev) => prev - limit);
+  };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore]);
+  const handleNextPage = () => {
+    if (hasMore) setOffset((prev) => prev + limit);
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-4">
+      {/* Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item, index) => {
-          // Check if this specific product is liked
           const liked = isItemLiked(item.product_id);
-
           return (
             <div
               key={index}
@@ -166,29 +156,24 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
                 <div className="text-sm text-white/80">
                   <p className="mb-1">
-                    <strong>Rating:</strong> ⭐ {item.rating} (
-                    {item.rating_count} reviews)
+                    <strong>Rating:</strong> ⭐ {item.rating} ({item.rating_count} reviews)
                   </p>
-
                   <p className="mb-1">
                     <strong>Shop:</strong> {item.shop_name || "Unknown"}
                   </p>
-
                   <p className="text-sm text-white/80 break-words mb-2">
-                <strong>External Site:</strong>{' '}
-                <a
-                  href={item.external_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-300 underline break-all hover:text-cyan-100"
-                >
-                  {item.external_url}
-                </a>
-              </p>
-
+                    <strong>External Site:</strong>{" "}
+                    <a
+                      href={item.external_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-300 underline break-all hover:text-cyan-100"
+                    >
+                      {item.external_url}
+                    </a>
+                  </p>
                 </div>
 
-        
                 <div className="text-sm text-white/80 mb-2">
                   <p
                     className={
@@ -219,7 +204,7 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
                     </span>
                   </p>
 
-                  {/* Like button with heart icon */}
+                  {/* Like button */}
                   <button
                     onClick={() => handleSaveItem(item.product_id)}
                     className={`mt-3 w-full py-2 rounded-md transition font-semibold flex items-center justify-center gap-2 ${
@@ -239,6 +224,33 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
             </div>
           );
         })}
+      </div>
+
+      {loading && (
+        <div className="text-center text-white mt-4 animate-pulse">Loading...</div>
+      )}
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center mt-6 gap-4">
+        <button
+          onClick={handlePrevPage}
+          disabled={offset === 0}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          ⬅ Prev
+        </button>
+
+        <span className="text-white font-semibold">
+          Page {Math.floor(offset / limit) + 1}
+        </span>
+
+        <button
+          onClick={handleNextPage}
+          disabled={!hasMore}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          Next ➡
+        </button>
       </div>
     </div>
   );

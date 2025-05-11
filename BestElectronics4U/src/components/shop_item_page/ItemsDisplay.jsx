@@ -23,9 +23,17 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
     try {
       setLoading(true);
       const currentOffset = reset ? 0 : offset;
+      console.log(
+        `Fetching products from ${
+          import.meta.env.VITE_API_URL
+        }/products with offset ${currentOffset}`
+      );
+
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/products`, {
         params: { offset: currentOffset, limit, query: searchQuery },
       });
+
+      console.log(`Received ${res.data?.length || 0} products from backend`);
 
       if (res.data.length < limit) setHasMore(false);
       else setHasMore(true);
@@ -33,7 +41,14 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
       setItems(res.data);
     } catch (error) {
       console.error("❌ Error fetching products:", error);
-      alert("❌ Failed to fetch products. Please try again.");
+      console.error(
+        "Error details:",
+        error.response?.data || "No response data"
+      );
+      console.error("Status code:", error.response?.status || "No status code");
+      alert(
+        `❌ Failed to fetch products. Please try again. (${error.message})`
+      );
     } finally {
       setLoading(false);
     }
@@ -44,7 +59,7 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
     if (savedItems && Array.isArray(savedItems)) {
       const productIds = savedItems.map((item) => String(item.product_id));
       setLikedItemIds(new Set(productIds));
-      console.log("Updated liked items on render/refresh:", productIds);
+      // console.log("Updated liked items on render/refresh:", productIds);
     } else {
       setLikedItemIds(new Set());
     }
@@ -56,13 +71,27 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
       return;
     }
 
+    // Get proper user ID
+    const userId = user.user_id || user.id;
+    if (!userId) {
+      console.error("No user ID found in user object:", user);
+      alert("❌ User ID not found. Please log in again.");
+      return;
+    }
+
     try {
       const productIdStr = String(product_id);
       const isAlreadyLiked = likedItemIds.has(productIdStr);
 
+      // console.log(
+      //   `${
+      //     isAlreadyLiked ? "Unliking" : "Liking"
+      //   } product: ${productIdStr} for user: ${userId}`
+      // );
+
       if (isAlreadyLiked) {
         await axios.delete(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
-          data: { user_id: user.user_id, product_id },
+          data: { user_id: userId, product_id: String(product_id) },
         });
 
         setSavedItems((prev) =>
@@ -73,13 +102,18 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
         newLikedIds.delete(productIdStr);
         setLikedItemIds(newLikedIds);
 
-        console.log("Item unliked:", productIdStr);
-        alert("Item unliked");
+        // console.log("Item unliked:", productIdStr);
+        alert("✓ Item removed from saved items");
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
-          user_id: user.user_id,
-          product_id,
-        });
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/saved-items`,
+          {
+            user_id: userId,
+            product_id: String(product_id),
+          }
+        );
+
+        // console.log("Save item response:", response.data);
 
         const newLikedIds = new Set(likedItemIds);
         newLikedIds.add(productIdStr);
@@ -91,18 +125,37 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
         if (itemToAdd) {
           setSavedItems((prev) => [...prev, itemToAdd]);
         } else {
+          // Get proper user ID
+          const userId = user.user_id || user.id;
           const res = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/saved-items/${user.user_id}`
+            `${import.meta.env.VITE_API_URL}/api/saved-items/${userId}`
           );
           setSavedItems(res.data || []);
         }
 
-        console.log("Item liked:", productIdStr);
+        // console.log("Item liked:", productIdStr);
         alert("✅ Item liked successfully!");
       }
     } catch (err) {
       console.error("❌ Error managing liked item:", err);
-      alert("❌ Failed to update liked status.");
+      console.error("Error details:", err.response?.data || "No response data");
+      console.error("Status code:", err.response?.status || "No status code");
+
+      // Provide more specific error messages based on the error
+      let errorMessage = `Failed to update liked status: ${err.message}`;
+
+      if (err.response?.data?.message) {
+        // Use the server's error message if available
+        errorMessage = `${err.response.data.message}`;
+      } else if (err.response?.status === 401) {
+        errorMessage = "You need to log in again to like items.";
+      } else if (err.response?.status === 400) {
+        errorMessage = "Invalid request. Please try again.";
+      } else if (err.response?.status === 500) {
+        errorMessage = "Server error. Please try again later.";
+      }
+
+      alert(`❌ ${errorMessage}`);
     }
   };
 
@@ -156,7 +209,8 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
                 <div className="text-sm text-white/80">
                   <p className="mb-1">
-                    <strong>Rating:</strong> ⭐ {item.rating} ({item.rating_count} reviews)
+                    <strong>Rating:</strong> ⭐ {item.rating} (
+                    {item.rating_count} reviews)
                   </p>
                   <p className="mb-1">
                     <strong>Shop:</strong> {item.shop_name || "Unknown"}
@@ -227,7 +281,9 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
       </div>
 
       {loading && (
-        <div className="text-center text-white mt-4 animate-pulse">Loading...</div>
+        <div className="text-center text-white mt-4 animate-pulse">
+          Loading...
+        </div>
       )}
 
       {/* Pagination Controls */}

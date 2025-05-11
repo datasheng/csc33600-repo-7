@@ -3,18 +3,8 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const { createClient } = require("@supabase/supabase-js");
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      persistSession: false,
-    },
-  }
-);
+const { supabase } = require("../supabaseClient");
+const authenticateToken = require("./authMiddleware"); // Import the middleware
 
 function isValidPassword(password) {
   return /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
@@ -48,7 +38,6 @@ router.post("/signup", async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
-    console.error("❌ Signup Error:", err.message);
     res.status(500).json({ error: "Signup failed." });
   }
 });
@@ -93,7 +82,14 @@ router.post("/register", async (req, res) => {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = Date.now().toString(); // Or use uuid
+
+    // Generate a Supabase-style ID (mix of uppercase letters and numbers)
+    const randomId = Array.from({ length: 26 }, () => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      return chars.charAt(Math.floor(Math.random() * chars.length));
+    }).join("");
+
+    const userId = randomId;
 
     // Insert user
     const { error: insertError } = await supabase.from("user").insert({
@@ -134,7 +130,6 @@ router.post("/register", async (req, res) => {
       message: "User registered successfully!",
     });
   } catch (err) {
-    console.error("❌ Register Error:", err.message);
     return res
       .status(500)
       .json({ message: "Server error during registration." });
@@ -143,9 +138,6 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log(
-    `⏱️ Login attempt for email: ${email} at ${new Date().toISOString()}`
-  );
 
   try {
     // Find user by email
@@ -161,11 +153,6 @@ router.post("/login", async (req, res) => {
     }
 
     const user = users[0];
-    console.log("User found:", {
-      user_id: user.user_id,
-      email: user.email,
-      is_vendor: user.is_vendor,
-    });
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.user_password);
@@ -176,7 +163,7 @@ router.post("/login", async (req, res) => {
     // Generate JWT
     const token = jwt.sign(
       {
-        user_id: user.user_id,
+        id: user.user_id,
         email: user.email,
         is_vendor: user.is_vendor,
       },
@@ -184,28 +171,67 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // Prepare user data with consistent field names
-    const userData = {
-      user_id: user.user_id,
-      id: user.user_id, // Include both forms for compatibility
-      email: user.email,
-      username: user.user_name,
-      user_name: user.user_name,
-      is_vendor: user.is_vendor,
-      paid_user: user.paid_user || false,
-      first_name: user.first_name || "",
-      last_name: user.last_name || "",
-      address: user.address || "",
-    };
-
     res.json({
       message: "Login successful",
       token,
-      user: userData,
+      user: {
+        user_id: user.user_id,
+        id: user.user_id,
+        email: user.email,
+        username: user.user_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        is_vendor: user.is_vendor,
+        paid_user: user.paid_user || false,
+        address: user.address,
+      },
     });
   } catch (err) {
-    console.error("❌ Login Error:", err.message);
     res.status(500).json({ message: "Login failed due to server error." });
+  }
+});
+
+// Add the new /verify-token route
+router.get("/verify-token", authenticateToken, async (req, res) => {
+  // If authenticateToken middleware passes, req.user will be populated with the token payload
+  // The token payload from login is: { id: user.user_id, email: user.email, is_vendor: user.is_vendor }
+  const userIdFromToken = req.user.id; // This 'id' field in the token holds the actual user_id
+
+  if (!userIdFromToken) {
+    return res.status(400).json({ message: "User ID not found in token." });
+  }
+
+  try {
+    const { data: users, error: queryError } = await supabase
+      .from("user")
+      .select("*")
+      .eq("user_id", userIdFromToken); // Use the user_id from the token
+
+    if (queryError) throw queryError;
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const user = users[0];
+
+    // Respond with the same user object structure as in /login
+    res.json({
+      message: "Token verified successfully.",
+      user: {
+        user_id: user.user_id,
+        id: user.user_id,
+        email: user.email,
+        username: user.user_name,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        is_vendor: user.is_vendor,
+        paid_user: user.paid_user || false,
+        address: user.address,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Token verification failed due to server error." });
   }
 });
 

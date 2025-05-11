@@ -1,15 +1,4 @@
 services:
-  # MySQL Database Service (Private Service)
-  # Note: Free tier without persistent disk (data will be lost on redeploy)
-  - type: pserv
-    name: bestelectronics4u-mysql
-    plan: free
-    env: docker
-    repo: https://github.com/render-examples/mysql.git
-    autoDeploy: false
-    envVars:
-      - fromGroup: mysql-env
-
   # Backend API service using Docker
   - type: web
     name: bestelectronics4u-api
@@ -22,16 +11,13 @@ services:
     dockerContext: .
     envVars:
       - key: DB_HOST
-        fromService:
-          name: bestelectronics4u-mysql
-          type: pserv
-          property: host
+        sync: false  # Enter RDS Endpoint in Render Dashboard
       - key: DB_PORT
         value: 3306
       - key: DB_USER
-        value: mysql
+        sync: false  # Enter RDS User in Render Dashboard
       - key: DB_PASSWORD
-        sync: false # Security best practice: manual entry for sensitive credentials
+        sync: false  # Enter RDS Password in Render Dashboard
       - key: DB_NAME
         value: electronics4U
       - key: PORT
@@ -64,15 +50,3 @@ services:
         value: https://bestelectronics4u-api.onrender.com
       - key: VITE_STRIPE_PUBLIC_KEY
         sync: false
-
-envVarGroups:
-  - name: mysql-env
-    envVars:
-      - key: MYSQL_DATABASE
-        value: electronics4U
-      - key: MYSQL_USER
-        value: mysql
-      - key: MYSQL_PASSWORD
-        generateValue: true
-      - key: MYSQL_ROOT_PASSWORD
-        generateValue: true 

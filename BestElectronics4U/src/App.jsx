@@ -42,75 +42,32 @@ function App() {
   const [user, setUser] = useState(null);
   const [savedItems, setSavedItems] = useState([]);
 
-  // Effect to load user from localStorage or verify token
   useEffect(() => {
-    const initializeUser = async () => {
-      const storedUserString = localStorage.getItem("user");
-      const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
 
-      if (token) { // Prioritize token for verification
-        try {
-          const response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/auth/verify-token`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-
-          if (response.data && response.data.user) {
-            const backendUser = response.data.user;
-            // Ensure the backendUser has the primary user_id
-            if (backendUser.user_id) {
-              localStorage.setItem("user", JSON.stringify(backendUser));
-              localStorage.setItem("token", token); // Refresh/confirm token if needed, or rely on existing
-              setUser(backendUser);
-            } else {
-              localStorage.removeItem("user");
-              localStorage.removeItem("token");
-              setUser(null);
-            }
-          } else {
-            localStorage.removeItem("user");
-            localStorage.removeItem("token");
-            setUser(null);
-          }
-        } catch (error) {
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
-          setUser(null);
-        }
-      } else if (storedUserString) {
-        try {
-          const parsedUser = JSON.parse(storedUserString);
-          // Basic validation: check if it has a user_id that looks like the new format or an old one for graceful degradation
-          if (parsedUser && parsedUser.user_id) {
-            setUser(parsedUser);
-          } else {
-            localStorage.removeItem("user");
-            setUser(null);
-          }
-        } catch (e) {
-          localStorage.removeItem("user");
-          setUser(null);
-        }
+      // Load saved items when user is loaded
+      if (parsedUser?.user_id) {
+        axios
+          .get(
+            `${import.meta.env.VITE_API_URL}/api/saved-items/${
+              parsedUser.user_id
+            }`
+          )
+          .then((res) => {
+            setSavedItems(res.data || []);
+          })
+          .catch((err) => {
+            console.error(
+              "❌ Failed to fetch saved items on app load:",
+              err.message
+            );
+          });
       }
-    };
-    initializeUser();
-  }, []);
-
-  useEffect(() => {
-    // Load saved items when user is loaded
-    const userId = user?.user_id || user?.id;
-    if (userId) {
-      axios
-        .get(`${import.meta.env.VITE_API_URL}/api/saved-items/${userId}`)
-        .then((res) => {
-          setSavedItems(res.data || []);
-        })
-        .catch((err) => {
-        });
     }
-  }, [user]);
+  }, []);
 
   return (
     <Router>

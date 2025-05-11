@@ -3,18 +3,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const { createClient } = require("@supabase/supabase-js");
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      persistSession: false,
-    },
-  }
-);
+const db = require("../db");
 
 function isValidPassword(password) {
   return /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
@@ -34,18 +23,11 @@ router.post("/signup", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(user_password, 10);
-
-    // Insert user into Supabase
-    const { error } = await supabase.from("user").insert({
-      user_id,
-      user_name,
-      email,
-      user_password: hashedPassword,
-      is_vendor: is_vendor ? true : false, // Supabase uses boolean instead of 0/1
-    });
-
-    if (error) throw error;
-
+    await db.execute(
+      `INSERT INTO user (user_id, user_name, email, user_password, is_vendor)
+       VALUES (?, ?, ?, ?, ?)`,
+      [user_id, user_name, email, hashedPassword, is_vendor ? 1 : 0]
+    );
     res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
     console.error("❌ Signup Error:", err.message);
@@ -78,14 +60,10 @@ router.post("/register", async (req, res) => {
 
   try {
     // Check if user exists
-    const { data: existing, error: queryError } = await supabase
-      .from("user")
-      .select("*")
-      .eq("email", email);
-
-    if (queryError) throw queryError;
-
-    if (existing && existing.length > 0) {
+    const [existing] = await db.execute("SELECT * FROM user WHERE email = ?", [
+      email,
+    ]);
+    if (existing.length > 0) {
       return res
         .status(400)
         .json({ message: "User with this email already exists." });
@@ -96,18 +74,22 @@ router.post("/register", async (req, res) => {
     const userId = Date.now().toString(); // Or use uuid
 
     // Insert user
-    const { error: insertError } = await supabase.from("user").insert({
-      user_id: userId,
-      user_name: username,
-      email,
-      user_password: hashedPassword,
-      is_vendor: is_vendor ? true : false,
-      first_name,
-      last_name,
-      address,
-    });
-
-    if (insertError) throw insertError;
+    await db.execute(
+      `INSERT INTO user (
+        user_id, user_name, email, user_password, is_vendor,
+        first_name, last_name, address
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        username,
+        email,
+        hashedPassword,
+        is_vendor ? 1 : 0,
+        first_name,
+        last_name,
+        address,
+      ]
+    );
 
     // Generate token
     const token = jwt.sign(
@@ -148,63 +130,85 @@ router.post("/login", async (req, res) => {
   );
 
   try {
-    // Find user by email
-    const { data: users, error: queryError } = await supabase
-      .from("user")
-      .select("*")
-      .eq("email", email);
+    // Get user from database
+    console.log("🔍 Querying database for user...");
+    const [users] = await db.execute("SELECT * FROM user WHERE email = ?", [
+      email,
+    ]);
 
-    if (queryError) throw queryError;
-
+    // Check if user exists
     if (!users || users.length === 0) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      console.log(`❌ User not found in database: ${email}`);
+      return res.status(401).json({ message: "Invalid email or password." });
     }
 
     const user = users[0];
-    console.log("User found:", {
-      user_id: user.user_id,
-      email: user.email,
-      is_vendor: user.is_vendor,
-    });
-
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.user_password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      {
-        user_id: user.user_id,
-        email: user.email,
-        is_vendor: user.is_vendor,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+    console.log(
+      `✅ User found: ${user.user_name || "Unknown"} (ID: ${user.user_id})`
+    );
+    console.log(
+      `🔐 Database password field: ${
+        user.user_password ? "exists" : "missing"
+      }, length: ${user.user_password ? user.user_password.length : 0}`
     );
 
-    // Prepare user data with consistent field names
-    const userData = {
+    // For security reasons, don't log the actual password hash
+    console.log(`🔑 Password received from client, length: ${password.length}`);
+
+    let isValidLogin = false;
+
+    // Try bcrypt comparison for hashed passwords
+    try {
+      console.log("🔍 Attempting bcrypt comparison...");
+      isValidLogin = await bcrypt.compare(password, user.user_password);
+      console.log(`🔒 Bcrypt comparison result: ${isValidLogin}`);
+    } catch (err) {
+      console.error(`❌ Bcrypt error: ${err.message}`);
+      console.error(err.stack);
+      isValidLogin = false;
+    }
+
+    // If bcrypt comparison failed, try direct comparison for demo accounts
+    if (!isValidLogin) {
+      console.log(`🔍 Attempting plain text comparison as fallback...`);
+      if (password === user.user_password) {
+        console.log("✅ Plain text password match (demo account)");
+        isValidLogin = true;
+      } else {
+        console.log("❌ Plain text comparison also failed");
+      }
+    }
+
+    if (!isValidLogin) {
+      console.log("❌ Password validation failed");
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    // Generate token
+    console.log("🔑 Generating JWT token...");
+    const token = jwt.sign(
+      { user_id: user.user_id, is_vendor: !!user.is_vendor },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // ✅ Include all necessary user info
+    const userPayload = {
       user_id: user.user_id,
-      id: user.user_id, // Include both forms for compatibility
+      user_name: user.user_name || "",
       email: user.email,
-      username: user.user_name,
-      user_name: user.user_name,
-      is_vendor: user.is_vendor,
-      paid_user: user.paid_user || false,
+      is_vendor: !!user.is_vendor,
+      paid_user: !!user.paid_user,
       first_name: user.first_name || "",
       last_name: user.last_name || "",
       address: user.address || "",
     };
 
-    res.json({
-      message: "Login successful",
-      token,
-      user: userData,
-    });
+    console.log("✅ Login successful, sending response");
+    res.json({ token, user: userPayload });
   } catch (err) {
     console.error("❌ Login Error:", err.message);
+    console.error(err.stack);
     res.status(500).json({ message: "Login failed due to server error." });
   }
 });

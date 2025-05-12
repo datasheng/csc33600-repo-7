@@ -117,7 +117,7 @@ async function ensureCategoryPathExists(db, fullPath) {
 
             if (rid && title && content) {
               await connection.execute(
-                `INSERT INTO review (
+                `INSERT IGNORE INTO review (
                   review_id, user_id, product_id, review_title, review_content, review_date
                 ) VALUES (?, ?, ?, ?, ?, CURDATE())`,
                 [rid, user_id, product_id, title, content]

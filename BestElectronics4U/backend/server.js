@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 require('dotenv').config();
+const { runSeed } = require('./seed'); // Import the seed function
 
 const app = express();
 app.use(cors());
@@ -27,8 +28,13 @@ const db = mysql.createConnection({
   });
   
 db.connect(err => {
-  if (err) throw err;
-  console.log("✅ Connected to MySQL database!");
+  if (err) {
+    console.error("❌ Error connecting to MySQL database for server:", err);
+    // Potentially exit if DB connection is critical for server start
+    // process.exit(1);
+    throw err; // Or rethrow if you have a global error handler
+  }
+  console.log("✅ Server: Connected to MySQL database!");
 });
 
 app.get('/products', (req, res) => {
@@ -60,7 +66,21 @@ app.get('/products', (req, res) => {
   
   
 
-const PORT = process.env.PORT ;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 5001; // Fallback for local dev if PORT is not set
+const HOST = '0.0.0.0'; // Listen on all available network interfaces
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+  
+  // Run the seed process in the background after the server has started
+  console.log('🌱 Server: Initiating database seed process...');
+  runSeed()
+    .then(() => {
+      console.log('✅ Server: Database seed process completed successfully.');
+    })
+    .catch(seedError => {
+      console.error('❌ Server: Database seed process failed.', seedError);
+      // Decide if you need to do anything else if seeding fails, 
+      // but the server itself is already running.
+    });
 });

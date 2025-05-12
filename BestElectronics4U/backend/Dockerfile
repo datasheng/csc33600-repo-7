@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 5001
 
 # Command to run the application
-CMD ["sh", "-c", "node seed.js && node server.js"] 
+CMD ["node", "server.js"] 

@@ -19,7 +19,7 @@ const PricingCard = ({
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:5001/api/stripe/create-checkout-session",
+        "https://your-backend-url.onrender.com/api/stripe/create-checkout-session",
         {
           method: "POST",
           headers: {

@@ -10,9 +10,6 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Run the seed script to populate the database
-RUN node seed.js
-
 # Copy app source
 COPY . .
 
@@ -20,4 +17,4 @@ COPY . .
 EXPOSE 5001
 
 # Command to run the application
-CMD ["node", "server.js"] 
+CMD ["sh", "-c", "node seed.js && node server.js"] 

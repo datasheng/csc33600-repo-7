@@ -18,8 +18,8 @@ const PricingCard = ({
       const stripe = await stripePromise;
       const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        "https://bestelectronics4u-api.onrender.com/api/stripe/create-checkout-session",
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/stripe/create-checkout-session`,
         {
           method: "POST",
           headers: {
@@ -107,7 +107,7 @@ const Pricing = () => {
     {
       title: "Monthly",
       price: "2",
-      priceId: "",
+      priceId: "price_1RKmZKQvPHTql1pnv0MpHQQE",
       period: "month",
       features: [
         "Access to all product listings",
@@ -121,7 +121,7 @@ const Pricing = () => {
     {
       title: "Lifetime",
       price: "100",
-      priceId: "",
+      priceId: "price_1RKmfIQvPHTql1pnJ8omUM6F",
       period: null,
       features: [
         "Unlimited lifetime access",

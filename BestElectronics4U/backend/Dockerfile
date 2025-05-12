@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+# Run the seed script to populate the database
+RUN node seed.js
+
 # Copy app source
 COPY . .
 

@@ -19,7 +19,7 @@ const PricingCard = ({
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "https://your-backend-url.onrender.com/api/stripe/create-checkout-session",
+        "https://bestelectronics4u-api.onrender.com/api/stripe/create-checkout-session",
         {
           method: "POST",
           headers: {

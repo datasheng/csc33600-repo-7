@@ -42,7 +42,6 @@ const VendorProducts = ({ userId }) => {
         }`,
         product
       );
-      alert("✅ Product updated!");
       setEditingId(null);
       fetchProducts(); // Refresh to get latest data
     } catch (err) {
@@ -59,9 +58,7 @@ const VendorProducts = ({ userId }) => {
         `${import.meta.env.VITE_API_URL}/api/vendor/products/${productId}`
       );
       setProducts((prev) => prev.filter((p) => p.product_id !== productId));
-      alert("🗑️ Product deleted");
     } catch (err) {
-      alert("❌ Failed to delete product");
       console.error(err);
     }
   };

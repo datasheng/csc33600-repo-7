@@ -90,35 +90,35 @@ const Header = ({
             <Link
               to="/"
               onClick={handleHomeClick}
-              className={`px-4 py-2 rounded-md transition duration-200 ${
+              className={`px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
                 location.pathname === "/"
-                  ? "bg-white text-blue-700 font-semibold shadow-md"
-                  : "hover:bg-white/20 hover:text-white"
+                  ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg transform scale-[1.02] border-b-2 border-cyan-300"
+                  : "text-white hover:bg-white/20 hover:shadow-md active:scale-95"
               }`}
             >
-              Home
+              <span className="relative z-10">Home</span>
+              {location.pathname === "/" && (
+                <span className="absolute inset-0 bg-gradient-to-r from-indigo-700/80 via-cyan-700/80 to-blue-700/80 opacity-100 z-0"></span>
+              )}
+              <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-30 transition-opacity duration-300 z-0"></span>
             </Link>
           </li>
           <li>
-            <button
-              onClick={() => {
-                if (!user) {
-                  alert("You must be logged in to view the shop.");
-                } else if (!user.paid_user && !user.is_vendor) {
-                  alert("You must be a paid user or vendor to view this page.");
-                } else {
-                  navigate("/shop");
-                  window.scrollTo(0, 0);
-                }
-              }}
-              className={`px-4 py-2 rounded-md transition duration-200 ${
+            <Link
+              to="/shop"
+              onClick={handleLinkClick}
+              className={`px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
                 location.pathname === "/shop"
-                  ? "bg-white text-blue-700 font-semibold shadow-md"
-                  : "hover:bg-white/20 hover:text-white"
+                  ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg transform scale-[1.02] border-b-2 border-cyan-300"
+                  : "text-white hover:bg-white/20 hover:shadow-md active:scale-95"
               }`}
             >
-              Shop
-            </button>
+              <span className="relative z-10">Shop</span>
+              {location.pathname === "/shop" && (
+                <span className="absolute inset-0 bg-gradient-to-r from-indigo-700/80 via-cyan-700/80 to-blue-700/80 opacity-100 z-0"></span>
+              )}
+              <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-30 transition-opacity duration-300 z-0"></span>
+            </Link>
           </li>
           {[
             { label: "Pricing", to: "/pricing" },
@@ -129,13 +129,17 @@ const Header = ({
               <Link
                 to={to}
                 onClick={handleLinkClick}
-                className={`px-4 py-2 rounded-md transition duration-200 ${
+                className={`px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
                   location.pathname === to
-                    ? "bg-white text-blue-700 font-semibold shadow-md"
-                    : "hover:bg-white/20 hover:text-white"
+                    ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg transform scale-[1.02] border-b-2 border-cyan-300"
+                    : "text-white hover:bg-white/20 hover:shadow-md active:scale-95"
                 }`}
               >
-                {label}
+                <span className="relative z-10">{label}</span>
+                {location.pathname === to && (
+                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-700/80 via-cyan-700/80 to-blue-700/80 opacity-100 z-0"></span>
+                )}
+                <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-30 transition-opacity duration-300 z-0"></span>
               </Link>
             </li>
           ))}
@@ -144,13 +148,17 @@ const Header = ({
               <Link
                 to="/dashboard"
                 onClick={handleLinkClick}
-                className={`px-4 py-2 rounded-md transition duration-200 ${
+                className={`px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
                   location.pathname === "/dashboard"
-                    ? "bg-white text-blue-700 font-semibold shadow-md"
-                    : "hover:bg-white/20 hover:text-white"
+                    ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg transform scale-[1.02] border-b-2 border-cyan-300"
+                    : "text-white hover:bg-white/20 hover:shadow-md active:scale-95"
                 }`}
               >
-                Dashboard
+                <span className="relative z-10">Dashboard</span>
+                {location.pathname === "/dashboard" && (
+                  <span className="absolute inset-0 bg-gradient-to-r from-indigo-700/80 via-cyan-700/80 to-blue-700/80 opacity-100 z-0"></span>
+                )}
+                <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-30 transition-opacity duration-300 z-0"></span>
               </Link>
             </li>
           )}

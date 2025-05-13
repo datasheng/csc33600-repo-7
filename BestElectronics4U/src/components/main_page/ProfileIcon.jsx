@@ -51,29 +51,57 @@ const ProfileIcon = ({ user, setUser }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+        <div className="absolute right-0 mt-2 w-60 bg-gradient-to-br from-indigo-900/95 via-blue-900/95 to-cyan-900/95 text-white rounded-xl shadow-xl z-50 backdrop-blur-md border border-white/20">
           {user ? (
             <>
-              <div className="px-4 py-2 text-sm text-gray-700 border-b">
+              <div className="sticky top-0 bg-gradient-to-r from-indigo-800 via-cyan-700 to-blue-700 px-4 py-3 rounded-t-xl flex items-center gap-2 border-b border-white/10">
+                <span className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full w-8 h-8 flex items-center justify-center">
+                  👤
+                </span>
                 <p className="font-semibold">
-                  Welcome, {user.first_name || user.user_name.split(" ")[0]}!
+                  Welcome,{" "}
+                  {user.first_name ||
+                    (user.user_name ? user.user_name.split(" ")[0] : "User")}
+                  !
                 </p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-              >
-                Logout
-              </button>
+
+              <div className="p-3">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-center mb-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white rounded-md transition-colors"
+                >
+                  Dashboard
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-center px-4 py-2 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white rounded-md transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
             </>
           ) : (
-            <Link
-              to="/auth"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Login / Register
-            </Link>
+            <>
+              <div className="sticky top-0 bg-gradient-to-r from-indigo-800 via-cyan-700 to-blue-700 px-4 py-3 rounded-t-xl flex items-center gap-2 border-b border-white/10">
+                <span className="bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full w-8 h-8 flex items-center justify-center">
+                  👤
+                </span>
+                <p className="font-semibold">Account</p>
+              </div>
+
+              <div className="p-3">
+                <Link
+                  to="/auth"
+                  onClick={() => setIsOpen(false)}
+                  className="block w-full text-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white rounded-md transition-colors"
+                >
+                  Login / Register
+                </Link>
+              </div>
+            </>
           )}
         </div>
       )}

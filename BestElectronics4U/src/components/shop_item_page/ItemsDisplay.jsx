@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
   const [items, setItems] = useState([]);
@@ -8,6 +9,9 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
   const [likedItemIds, setLikedItemIds] = useState(new Set());
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [loading, setLoading] = useState(false);
+
+  // Check if user has paid subscription or is a vendor
+  const isPaidOrVendor = user && (user.paid_user || user.is_vendor);
 
   const limit = 30; // items per page
 
@@ -64,7 +68,6 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
       setItems(res.data);
     } catch (error) {
       console.error("❌ Error fetching products:", error);
-      alert("❌ Failed to fetch products. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -105,7 +108,6 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
         setLikedItemIds(newLikedIds);
 
         console.log("Item unliked:", productIdStr);
-        alert("Item unliked");
       } else {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
           user_id: user.user_id,
@@ -129,11 +131,9 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
         }
 
         console.log("Item liked:", productIdStr);
-        alert("✅ Item liked successfully!");
       }
     } catch (err) {
       console.error("❌ Error managing liked item:", err);
-      alert("❌ Failed to update liked status.");
     }
   };
 
@@ -168,19 +168,27 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
           return (
             <div
               key={index}
-              className="bg-white/10 border border-white/20 p-4 rounded-xl shadow-lg backdrop-blur-md flex flex-col h-full"
+              className={`bg-white/10 border border-white/20 p-4 rounded-xl shadow-lg backdrop-blur-md flex flex-col h-full relative overflow-hidden ${
+                !isPaidOrVendor ? "select-none" : ""
+              }`}
             >
               {/* Image */}
               <div className="w-full h-48 flex justify-center items-center mb-4">
                 <img
                   src={item.image_url}
                   alt={item.product_name}
-                  className="max-h-full object-contain w-full rounded-lg"
+                  className={`max-h-full object-contain w-full rounded-lg ${
+                    !isPaidOrVendor ? "blur-sm" : ""
+                  }`}
                 />
               </div>
 
               {/* Details */}
-              <div className="flex flex-col flex-grow">
+              <div
+                className={`flex flex-col flex-grow ${
+                  !isPaidOrVendor ? "blur-sm" : ""
+                }`}
+              >
                 <h3 className="text-lg font-semibold text-white mb-2 break-words line-clamp-2 hover:line-clamp-none">
                   {item.product_name}
                 </h3>
@@ -198,11 +206,12 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
                       External Site:
                     </strong>{" "}
                     <a
-                      href={item.external_url}
-                      target="_blank"
+                      href={isPaidOrVendor ? item.external_url : "#"}
+                      target={isPaidOrVendor ? "_blank" : "_self"}
                       rel="noopener noreferrer"
                       className="text-cyan-300 underline hover:text-cyan-100 truncate max-w-[150px] inline-block align-bottom"
                       title={item.external_url}
+                      onClick={(e) => !isPaidOrVendor && e.preventDefault()}
                     >
                       {truncateUrl(item.external_url)}
                     </a>
@@ -221,8 +230,11 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
                   </p>
                   {item.about_product && item.about_product.length > 120 && (
                     <button
-                      onClick={() => toggleDescription(item.product_id)}
+                      onClick={() =>
+                        isPaidOrVendor && toggleDescription(item.product_id)
+                      }
                       className="text-cyan-300 hover:text-cyan-100 text-xs mt-1 transition-colors"
+                      disabled={!isPaidOrVendor}
                     >
                       {expandedDescriptions[item.product_id]
                         ? "Show Less"
@@ -241,13 +253,18 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
                   {/* Like button */}
                   <button
-                    onClick={() => handleSaveItem(item.product_id)}
+                    onClick={() =>
+                      isPaidOrVendor && handleSaveItem(item.product_id)
+                    }
                     className={`mt-3 w-full py-2 rounded-md transition font-semibold flex items-center justify-center gap-2 ${
                       liked
                         ? "bg-pink-500 text-white hover:bg-pink-600"
                         : "bg-white text-indigo-700 hover:bg-indigo-100"
+                    } ${
+                      !isPaidOrVendor ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     data-product-id={item.product_id}
+                    disabled={!isPaidOrVendor}
                   >
                     {liked ? "Liked " : "Like "}
                     <span className="text-xl" role="img" aria-label="heart">
@@ -256,6 +273,37 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
                   </button>
                 </div>
               </div>
+
+              {/* Subscription Message Overlay for non-paid users */}
+              {!isPaidOrVendor && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-6 backdrop-blur-sm z-10">
+                  <div className="bg-gradient-to-r from-indigo-800 to-cyan-800 p-1 rounded-full mb-4">
+                    <svg
+                      className="w-12 h-12 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2 text-center">
+                    Premium Content
+                  </h3>
+                  <p className="text-white/80 text-center mb-4">
+                    Subscribe to view product details and make purchases
+                  </p>
+                  <Link
+                    to="/pricing"
+                    className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-medium rounded-md transition-colors"
+                  >
+                    View Pricing Plans
+                  </Link>
+                </div>
+              )}
             </div>
           );
         })}

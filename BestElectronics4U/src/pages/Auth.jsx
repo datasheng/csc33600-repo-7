@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Auth = ({ setUser }) => {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    username: '',
-    first_name: '',
-    last_name: '',
-    address: '',
-    is_vendor: 'false',
+    email: "",
+    password: "",
+    confirmPassword: "",
+    username: "",
+    first_name: "",
+    last_name: "",
+    address: "",
+    is_vendor: "false",
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!isLogin && formData.password !== formData.confirmPassword) {
-      alert('❌ Passwords do not match');
+      alert("❌ Passwords do not match");
       return;
     }
 
@@ -32,30 +32,30 @@ const Auth = ({ setUser }) => {
         ? {}
         : {
             username: formData.username,
-            is_vendor: formData.is_vendor === 'true',
+            is_vendor: formData.is_vendor === "true",
             first_name: formData.first_name,
             last_name: formData.last_name,
-            address: formData.address
+            address: formData.address,
           }),
     };
 
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-
+    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}${endpoint}`, payload);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}${endpoint}`,
+        payload
+      );
 
       if (res.data.token && res.data.user) {
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
         setUser(res.data.user);
       }
 
-      alert(isLogin ? '✅ Login successful!' : '✅ Account created!');
-      navigate('/');
+      navigate("/");
     } catch (err) {
-      console.error('❌ Auth error:', err.response?.data || err.message);
-      alert(err.response?.data?.message || '❌ Authentication failed');
+      console.error("❌ Auth error:", err.response?.data || err.message);
     }
   };
 
@@ -63,7 +63,7 @@ const Auth = ({ setUser }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -72,10 +72,10 @@ const Auth = ({ setUser }) => {
       <div className="max-w-md w-full space-y-8 bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-white/20">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-white mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? "Welcome Back" : "Create Account"}
           </h2>
           <p className="text-white/80">
-            {isLogin ? 'Sign in to your account' : 'Join our community today'}
+            {isLogin ? "Sign in to your account" : "Join our community today"}
           </p>
         </div>
 
@@ -83,13 +83,16 @@ const Auth = ({ setUser }) => {
           {!isLogin && (
             <>
               {[
-                { id: 'username', label: 'Username' },
-                { id: 'first_name', label: 'First Name' },
-                { id: 'last_name', label: 'Last Name' },
-                { id: 'address', label: 'Address' }
+                { id: "username", label: "Username" },
+                { id: "first_name", label: "First Name" },
+                { id: "last_name", label: "Last Name" },
+                { id: "address", label: "Address" },
               ].map(({ id, label }) => (
                 <div key={id}>
-                  <label htmlFor={id} className="block text-sm font-medium text-white/90">
+                  <label
+                    htmlFor={id}
+                    className="block text-sm font-medium text-white/90"
+                  >
                     {label}
                   </label>
                   <input
@@ -107,7 +110,10 @@ const Auth = ({ setUser }) => {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-white/90">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-white/90"
+            >
               Email address
             </label>
             <input
@@ -122,7 +128,10 @@ const Auth = ({ setUser }) => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-white/90">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-white/90"
+            >
               Password
             </label>
             <input
@@ -139,7 +148,10 @@ const Auth = ({ setUser }) => {
           {!isLogin && (
             <>
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-white/90"
+                >
                   Confirm Password
                 </label>
                 <input
@@ -154,7 +166,10 @@ const Auth = ({ setUser }) => {
               </div>
 
               <div>
-                <label htmlFor="is_vendor" className="block text-sm font-medium text-white/90">
+                <label
+                  htmlFor="is_vendor"
+                  className="block text-sm font-medium text-white/90"
+                >
                   Vendor
                 </label>
                 <select
@@ -176,7 +191,7 @@ const Auth = ({ setUser }) => {
               type="submit"
               className="w-full flex justify-center py-3 px-4 bg-white text-indigo-700 font-semibold rounded-md hover:bg-indigo-100 transition"
             >
-              {isLogin ? 'Sign in' : 'Create account'}
+              {isLogin ? "Sign in" : "Create account"}
             </button>
           </div>
         </form>
@@ -186,7 +201,9 @@ const Auth = ({ setUser }) => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-white/80 hover:text-white"
           >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            {isLogin
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Sign in"}
           </button>
         </div>
       </div>

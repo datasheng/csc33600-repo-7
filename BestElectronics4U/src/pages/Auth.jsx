@@ -52,10 +52,11 @@ const Auth = ({ setUser }) => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         setUser(res.data.user);
       }
-
+      alert(isLogin ? "✅ Login successful!" : "✅ Account created!");
       navigate("/");
     } catch (err) {
       console.error("❌ Auth error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "❌ Authentication failed");
     }
   };
 

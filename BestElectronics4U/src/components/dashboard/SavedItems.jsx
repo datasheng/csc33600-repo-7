@@ -144,13 +144,13 @@ const SavedItems = ({
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <div
               key={item.product_id}
               className="backdrop-blur-sm bg-white/5 rounded-xl overflow-hidden border border-white/20 hover:border-cyan-400/70 transition-all duration-300 group shadow-lg shadow-indigo-900/10 hover:shadow-cyan-600/20 flex flex-col"
             >
-              <div className="relative h-48 bg-gradient-to-br from-indigo-900/40 via-cyan-800/40 to-blue-900/40 overflow-hidden">
+              <div className="relative h-40 sm:h-48 bg-gradient-to-br from-indigo-900/40 via-cyan-800/40 to-blue-900/40 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-950/30 z-0"></div>
                 <img
                   src={item.image_url}
@@ -160,7 +160,7 @@ const SavedItems = ({
                 <div className="absolute top-2 right-2 z-20">
                   <button
                     onClick={() => handleRemove(item.product_id)}
-                    className="bg-white/10 backdrop-blur-md hover:bg-red-500/70 text-white rounded-md p-1.5 opacity-0 group-hover:opacity-100 transition-all border border-white/10 shadow-lg"
+                    className="bg-white/10 backdrop-blur-md hover:bg-red-500/70 text-white rounded-md p-1.5 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all border border-white/10 shadow-lg"
                     title="Remove from saved items"
                   >
                     <svg

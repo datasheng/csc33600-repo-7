@@ -14,8 +14,10 @@ const Header = ({
   const location = useLocation();
   const navigate = useNavigate();
   const cartRef = useRef();
+  const mobileMenuRef = useRef();
 
   const [cartOpen, setCartOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleHomeClick = () => {
     if (location.pathname === "/") {
@@ -57,6 +59,25 @@ const Header = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false);
+      }
+      if (cartRef.current && !cartRef.current.contains(e.target)) {
+        setCartOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close mobile menu when changing routes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const handleRemove = async (product_id) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/saved-items`, {
@@ -71,21 +92,52 @@ const Header = ({
   };
 
   return (
-    <header className="sticky top-0 z-[999] bg-gradient-to-r from-indigo-800 via-cyan-700 to-blue-700 shadow-md px-10 py-5 flex justify-between items-center backdrop-blur-sm">
+    <header className="sticky top-0 z-[999] bg-gradient-to-r from-indigo-800 via-cyan-700 to-blue-700 shadow-md px-4 sm:px-6 md:px-10 py-4 md:py-5 flex justify-between items-center backdrop-blur-sm">
       {/* Left section - Logo */}
       <div className="flex-shrink-0">
         <Link to="/" onClick={handleHomeClick}>
           <img
             src={logo}
             alt="BestElectronics4U Logo"
-            className="w-32 rounded-md"
+            className="w-24 md:w-32 rounded-md"
           />
         </Link>
       </div>
 
-      {/* Center section - Navigation Tabs */}
-      <nav className="flex-grow flex justify-center">
-        <ul className="flex items-center gap-4 text-white font-medium text-[1.1rem]">
+      {/* Mobile menu button */}
+      <button
+        className="md:hidden text-white p-2 focus:outline-none"
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        aria-label="Toggle menu"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          {mobileMenuOpen ? (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          ) : (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          )}
+        </svg>
+      </button>
+
+      {/* Center section - Navigation Tabs (Desktop) */}
+      <nav className="hidden md:flex flex-grow justify-center">
+        <ul className="flex items-center gap-2 lg:gap-4 text-white font-medium text-sm lg:text-[1.1rem]">
           <li>
             <Link
               to="/"
@@ -294,6 +346,77 @@ const Header = ({
 
         <ProfileIcon user={user} setUser={setUser} />
       </div>
+
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <div
+          ref={mobileMenuRef}
+          className="absolute top-full left-0 right-0 bg-gradient-to-b from-indigo-900/95 to-blue-900/95 backdrop-blur-md border-t border-white/10 border-b border-white/10 py-3 shadow-lg md:hidden z-50"
+        >
+          <ul className="flex flex-col space-y-2 px-4">
+            <li>
+              <Link
+                to="/"
+                onClick={handleHomeClick}
+                className={`block px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
+                  location.pathname === "/"
+                    ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg border-l-4 border-cyan-300"
+                    : "text-white hover:bg-white/10 hover:shadow-md active:scale-95"
+                }`}
+              >
+                <span className="relative z-10">Home</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/shop"
+                onClick={handleLinkClick}
+                className={`block px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
+                  location.pathname === "/shop"
+                    ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg border-l-4 border-cyan-300"
+                    : "text-white hover:bg-white/10 hover:shadow-md active:scale-95"
+                }`}
+              >
+                <span className="relative z-10">Shop</span>
+              </Link>
+            </li>
+            {[
+              { label: "Pricing", to: "/pricing" },
+              { label: "About", to: "/about" },
+              { label: "Contact", to: "/contact" },
+            ].map(({ label, to }) => (
+              <li key={to}>
+                <Link
+                  to={to}
+                  onClick={handleLinkClick}
+                  className={`block px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
+                    location.pathname === to
+                      ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg border-l-4 border-cyan-300"
+                      : "text-white hover:bg-white/10 hover:shadow-md active:scale-95"
+                  }`}
+                >
+                  <span className="relative z-10">{label}</span>
+                </Link>
+              </li>
+            ))}
+            {user && (
+              <li>
+                <Link
+                  to="/dashboard"
+                  onClick={handleLinkClick}
+                  className={`block px-4 py-2 rounded-md transition-all duration-300 relative overflow-hidden ${
+                    location.pathname === "/dashboard"
+                      ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg border-l-4 border-cyan-300"
+                      : "text-white hover:bg-white/10 hover:shadow-md active:scale-95"
+                  }`}
+                >
+                  <span className="relative z-10">Dashboard</span>
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
     </header>
   );
 };

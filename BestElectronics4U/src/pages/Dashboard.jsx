@@ -128,9 +128,9 @@ const Dashboard = ({ user: propUser, savedItems, setSavedItems }) => {
   }
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-indigo-900 via-cyan-800 to-blue-900 py-10">
+    <div className="min-h-full w-full bg-gradient-to-br from-indigo-900 via-cyan-800 to-blue-900 py-6 md:py-10">
       <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-white mb-8 text-center flex items-center justify-center gap-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-6 md:mb-8 text-center flex items-center justify-center gap-3">
           <span role="img" aria-label="dashboard">
             📊
           </span>
@@ -138,21 +138,23 @@ const Dashboard = ({ user: propUser, savedItems, setSavedItems }) => {
         </h1>
 
         {/* Tabbed Navigation */}
-        <div className="backdrop-blur-md bg-white/10 rounded-t-xl p-2 border border-white/20">
-          <div className="flex flex-wrap w-full">
+        <div className="backdrop-blur-md bg-white/10 rounded-t-xl p-2 border border-white/20 overflow-x-auto">
+          <div className="flex w-full min-w-max">
             {" "}
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 aria-label={tab.id}
-                className={`flex-1 text-center px-4 py-3 rounded-t-lg transition-all duration-300 font-medium relative overflow-hidden ${
+                className={`flex-1 min-w-[100px] text-center px-2 md:px-4 py-2 md:py-3 rounded-t-lg transition-all duration-300 font-medium relative overflow-hidden whitespace-nowrap ${
                   activeTab === tab.id
                     ? "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white font-semibold shadow-lg transform scale-[1.02] border-b-2 border-cyan-300"
                     : "text-white hover:bg-white/20 hover:shadow-md active:scale-95"
                 }`}
               >
-                <span className="relative z-10">{tab.label}</span>
+                <span className="relative z-10 text-sm md:text-base">
+                  {tab.label}
+                </span>
                 {activeTab === tab.id && (
                   <span className="absolute inset-0 bg-gradient-to-r from-indigo-700/80 via-cyan-700/80 to-blue-700/80 opacity-100 z-0"></span>
                 )}

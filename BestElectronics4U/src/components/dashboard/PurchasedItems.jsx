@@ -44,7 +44,7 @@ const PurchasedItems = ({ userId, purchasedItems, setPurchasedItems }) => {
       </div>
 
       {/* Display total savings */}
-      <div className="backdrop-blur-md bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-5 mb-6 border border-green-400/20 shadow-lg">
+      <div className="backdrop-blur-md bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-4 sm:p-5 mb-6 border border-green-400/20 shadow-lg">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <div className="bg-green-500/20 rounded-full p-3 border border-green-400/30 flex-shrink-0 hidden md:flex">
             <svg
@@ -62,11 +62,32 @@ const PurchasedItems = ({ userId, purchasedItems, setPurchasedItems }) => {
               />
             </svg>
           </div>
+
+          <div className="flex items-center md:hidden gap-2">
+            <div className="bg-green-500/20 rounded-full p-2 border border-green-400/30">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold">Total Savings</h3>
+          </div>
+
           <div className="flex-1">
-            <h3 className="text-lg text-white font-semibold mb-1">
+            <h3 className="text-lg text-white font-semibold mb-1 hidden md:block">
               Your Total Savings
             </h3>
-            <p className="text-3xl font-bold text-green-400">
+            <p className="text-2xl sm:text-3xl font-bold text-green-400">
               ${totalSavings.toFixed(2)}
             </p>
             <p className="text-white/60 text-sm mt-1">
@@ -94,13 +115,13 @@ const PurchasedItems = ({ userId, purchasedItems, setPurchasedItems }) => {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {purchasedItems.map((item) => (
             <div
               key={item.product_id}
               className="backdrop-blur-sm bg-white/5 rounded-xl overflow-hidden border border-white/20 hover:border-green-400/70 transition-all duration-300 group shadow-lg shadow-green-900/10 hover:shadow-emerald-600/20 flex flex-col"
             >
-              <div className="relative h-48 bg-gradient-to-br from-green-900/40 via-emerald-800/40 to-teal-900/40 overflow-hidden">
+              <div className="relative h-40 sm:h-48 bg-gradient-to-br from-green-900/40 via-emerald-800/40 to-teal-900/40 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-green-950/30 z-0"></div>
                 <img
                   src={item.image_url}
@@ -110,7 +131,7 @@ const PurchasedItems = ({ userId, purchasedItems, setPurchasedItems }) => {
                 <div className="absolute top-2 right-2 z-20">
                   <button
                     onClick={() => handleRemove(item.product_id)}
-                    className="bg-white/10 backdrop-blur-md hover:bg-red-500/70 text-white rounded-md p-1.5 opacity-0 group-hover:opacity-100 transition-all border border-white/10 shadow-lg"
+                    className="bg-white/10 backdrop-blur-md hover:bg-red-500/70 text-white rounded-md p-1.5 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-all border border-white/10 shadow-lg"
                     title="Remove from purchased items"
                   >
                     <svg

@@ -59,7 +59,7 @@ const Dashboard = ({ user: propUser, savedItems, setSavedItems }) => {
   }
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-teal-800 via-cyan-800 to-blue-900 py-10">
+    <div className="min-h-full w-full bg-gradient-to-br from-indigo-900 via-cyan-800 to-blue-900 py-10">
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-4xl font-bold text-white mb-8 text-center flex items-center justify-center gap-3">
           <span role="img" aria-label="dashboard">
@@ -71,10 +71,12 @@ const Dashboard = ({ user: propUser, savedItems, setSavedItems }) => {
         {/* Tabbed Navigation */}
         <div className="backdrop-blur-md bg-white/10 rounded-t-xl p-2 border border-white/20">
           <div className="flex flex-wrap w-full">
+            {" "}
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                aria-label={tab.id}
                 className={`flex-1 text-center px-4 py-3 rounded-t-lg transition-colors duration-200 font-medium ${
                   activeTab === tab.id
                     ? "bg-white text-blue-700 font-semibold shadow-md"

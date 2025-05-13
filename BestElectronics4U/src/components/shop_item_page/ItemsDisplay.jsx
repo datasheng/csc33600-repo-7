@@ -11,6 +11,37 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
   const limit = 30; // items per page
 
+  // Function to truncate URLs
+  const truncateUrl = (url) => {
+    try {
+      if (!url) return "";
+
+      // Remove protocol
+      let cleanUrl = url.replace(/(^\w+:|^)\/\//, "");
+
+      // Remove 'www.' if present
+      cleanUrl = cleanUrl.replace(/^www\./, "");
+
+      // Remove trailing slash
+      cleanUrl = cleanUrl.replace(/\/$/, "");
+
+      // Extract domain only (remove path)
+      const domain = cleanUrl.split("/")[0];
+
+      // If domain is already short, return it
+      if (domain.length < 20) {
+        return domain;
+      }
+
+      // Otherwise, truncate the domain
+      return domain.substring(0, 18) + "...";
+    } catch (e) {
+      console.error("Error truncating URL:", e);
+      // If there's an error, return a generic label
+      return "Visit site";
+    }
+  };
+
   // Toggle description expansion
   const toggleDescription = (productId) => {
     setExpandedDescriptions((prev) => ({
@@ -156,20 +187,24 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
 
                 <div className="text-sm text-white/80">
                   <p className="mb-1">
-                    <strong>Rating:</strong> ⭐ {item.rating} ({item.rating_count} reviews)
+                    <strong>Rating:</strong> ⭐ {item.rating} (
+                    {item.rating_count} reviews)
                   </p>
                   <p className="mb-1">
                     <strong>Shop:</strong> {item.shop_name || "Unknown"}
                   </p>
-                  <p className="text-sm text-white/80 break-words mb-2">
-                    <strong>External Site:</strong>{" "}
+                  <p className="text-sm text-white/80 mb-2 flex items-center">
+                    <strong className="whitespace-nowrap mr-1">
+                      External Site:
+                    </strong>{" "}
                     <a
                       href={item.external_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyan-300 underline break-all hover:text-cyan-100"
+                      className="text-cyan-300 underline hover:text-cyan-100 truncate max-w-[150px] inline-block align-bottom"
+                      title={item.external_url}
                     >
-                      {item.external_url}
+                      {truncateUrl(item.external_url)}
                     </a>
                   </p>
                 </div>
@@ -227,7 +262,9 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
       </div>
 
       {loading && (
-        <div className="text-center text-white mt-4 animate-pulse">Loading...</div>
+        <div className="text-center text-white mt-4 animate-pulse">
+          Loading...
+        </div>
       )}
 
       {/* Pagination Controls */}

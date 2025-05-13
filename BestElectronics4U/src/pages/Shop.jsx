@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
-import ItemsDisplay from '../components/shop_item_page/ItemsDisplay';
+import React, { useState } from "react";
+import ItemsDisplay from "../components/shop_item_page/ItemsDisplay";
 
 const Shop = ({ user, savedItems, setSavedItems }) => {
-  const [query, setQuery] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [query, setQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log('🔍 Searching for:', query);
+    console.log("🔍 Searching for:", query);
     setSearchTerm(query); // Trigger new search
   };
 
   return (
-    <div className="min-h-full w-full bg-gradient-to-br from-teal-800 via-cyan-800 to-blue-900 py-8">
+    <div className="min-h-full w-full bg-gradient-to-br from-indigo-900 via-cyan-800 to-blue-900 py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-bold text-white mb-8 text-center flex items-center justify-center gap-3">
-          <span role="img" aria-label="briefcase">💼</span>
+          <span role="img" aria-label="briefcase">
+            💼
+          </span>
           Product Listings
         </h1>
 

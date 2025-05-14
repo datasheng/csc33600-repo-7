@@ -38,33 +38,41 @@ db.connect(err => {
 });
 
 app.get('/products', (req, res) => {
-    const offset = parseInt(req.query.offset) || 0;
-    const limit = 30;
-    const search = req.query.query || '';
-  
-    const sql = `
-      SELECT 
-        p.product_id, p.product_name, p.discounted_price, p.actual_price, p.discount_percentage,
-        p.rating, p.rating_count, p.about_product, p.image_url, p.external_url,
-        s.shop_name
-      FROM product p
-      LEFT JOIN shop s ON p.shop_id = s.shop_id
-      WHERE p.product_name LIKE ? OR p.about_product LIKE ?
-      LIMIT ? OFFSET ?;
-    `;
-  
-    const searchPattern = `%${search}%`;
-  
-    db.query(sql, [searchPattern, searchPattern, limit, offset], (err, results) => {
-      if (err) {
-        console.error('❌ Error fetching products:', err.message);
-        return res.status(500).json({ error: 'Database query error' });
-      }
-      res.json(results);
-    });
+  const offset = parseInt(req.query.offset) || 0;
+  const limit = 30;
+  const search = req.query.query || '';
+
+  const sql = `
+    SELECT 
+      p.product_id,
+      p.product_name,
+      p.discounted_price,
+      p.actual_price,
+      p.discount_percentage,
+      p.rating,
+      p.rating_count,
+      p.about_product,
+      p.image_url,
+      p.external_url,
+      s.shop_name,
+      s.shop_address
+    FROM product p
+    LEFT JOIN shop s ON p.shop_id = s.shop_id
+    WHERE p.product_name LIKE ? OR p.about_product LIKE ?
+    LIMIT ? OFFSET ?;
+  `;
+
+  const searchPattern = `%${search}%`;
+
+  db.query(sql, [searchPattern, searchPattern, limit, offset], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching products:', err.message);
+      return res.status(500).json({ error: 'Database query error' });
+    }
+    res.json(results);
   });
-  
-  
+});
+
 
 const PORT = process.env.PORT || 5001; // Fallback for local dev if PORT is not set
 const HOST = '0.0.0.0'; // Listen on all available network interfaces

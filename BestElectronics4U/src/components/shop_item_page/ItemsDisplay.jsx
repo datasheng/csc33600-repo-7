@@ -201,6 +201,13 @@ const ItemsDisplay = ({ searchQuery, user, savedItems, setSavedItems }) => {
                   <p className="mb-1">
                     <strong>Shop:</strong> {item.shop_name || "Unknown"}
                   </p>
+
+                                    {item.shop_address && (
+                    <p className="mb-1">
+                      <strong>Address:</strong> {item.shop_address}
+                    </p>
+                  )}
+
                   <p className="text-xs sm:text-sm text-white/80 mb-2 flex items-center">
                     <strong className="whitespace-nowrap mr-1">
                       External Site:
